@@ -1,69 +1,86 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, User, Menu, X, ArrowRight, ChevronLeft, ChevronDown, Heart, Star, Plus, Minus, Trash2, Truck, Lock, Sparkles, MessageCircle, Filter, Award, Globe, Check, CheckCircle2, Package, MapPin, Mail, Phone, Instagram, Facebook, ExternalLink, Clock, Shield, Tag, ArrowUpRight, Info, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { ShoppingBag, X, MessageCircle, Search, Menu, ChevronRight, Heart, ArrowRight, Star, Sparkles, Award, Truck, Lock, MapPin, Mail, Phone, Instagram } from 'lucide-react';
 
-// ============================================================
-// FONTS + GLOBAL STYLES
-// ============================================================
+// =========================================================================
+// AMBAR PERFUMERIA — Brand tokens
+// =========================================================================
+const C = {
+  ink: '#0F0703',
+  inkSoft: '#1A0E08',
+  brown: '#2D1810',
+  brownMid: '#3D2418',
+  brownLight: '#4D2E1C',
+  gold: '#C9A961',
+  goldLight: '#E5C879',
+  goldDark: '#8B6F2B',
+  goldDeep: '#6B5520',
+  cream: '#F5EDD8',
+  pearl: '#FAF4E1',
+  ash: '#8C7E62',
+  mute: '#C2B89F',
+  warm: '#1A0E08',
+};
+
+const WA_NUMBER = '573173641851';
+const SHOPIFY_BASE = 'https://nova-import-7.myshopify.com';
+
 const Fonts = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500;600;700&family=Fraunces:opsz,ital,wght@9..144,0,400;9..144,0,500;9..144,1,400&display=swap');
-    .f-archivo { font-family: 'Archivo', sans-serif; }
-    .f-dm { font-family: 'DM Sans', sans-serif; }
-    .f-fraunces { font-family: 'Fraunces', serif; }
-    .f-mono { font-family: 'Archivo', sans-serif; letter-spacing: 0.2em; text-transform: uppercase; font-size: 0.7rem; font-weight: 600; }
-    @keyframes scroll-x { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-    .marquee { animation: scroll-x 35s linear infinite; }
-    @keyframes fadein { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    .fade { animation: fadein 0.5s ease-out; }
-    .grain { background-image: radial-gradient(rgba(0,0,0,0.02) 1px, transparent 1px); background-size: 3px 3px; }
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=Cinzel:wght@400;500;600&display=swap');
+    .f-serif { font-family: 'Cormorant Garamond', serif; font-feature-settings: 'liga' 1, 'kern' 1; }
+    .f-display { font-family: 'Cinzel', serif; letter-spacing: 0.05em; }
+    .f-sans { font-family: 'Inter', sans-serif; }
+    .f-mono { font-family: 'Inter', sans-serif; letter-spacing: 0.3em; text-transform: uppercase; font-size: 0.65rem; font-weight: 500; }
+    body { background: ${C.ink}; color: ${C.pearl}; margin: 0; }
+    * { box-sizing: border-box; }
+
+    @keyframes fadeup { from {opacity:0; transform:translateY(20px)} to {opacity:1; transform:none} }
+    .fadeup { animation: fadeup 0.9s ease-out both; }
+    .fadeup-d1 { animation: fadeup 0.9s 0.15s ease-out both; }
+    .fadeup-d2 { animation: fadeup 0.9s 0.3s ease-out both; }
+
+    @keyframes shimmer { 0% {background-position: -200% 0} 100% {background-position: 200% 0} }
+    .gold-text {
+      background: linear-gradient(90deg, ${C.goldDark}, ${C.goldLight}, ${C.goldDark});
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 8s linear infinite;
+    }
+
+    @keyframes scrollx { from {transform: translateX(0)} to {transform: translateX(-50%)} }
+    .marquee { animation: scrollx 60s linear infinite; }
+
+    .grain {
+      background-image: radial-gradient(rgba(201,169,97,0.04) 1px, transparent 1px);
+      background-size: 6px 6px;
+    }
+    .glow-gold { box-shadow: 0 0 100px rgba(201,169,97,0.3); }
+    .glow-gold-sm { box-shadow: 0 0 40px rgba(201,169,97,0.2); }
+
+    .h-link { position: relative; }
+    .h-link::after {
+      content: ''; position: absolute; left: 0; bottom: -4px;
+      width: 0; height: 1px; background: ${C.gold};
+      transition: width 0.3s ease;
+    }
+    .h-link:hover::after { width: 100%; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: ${C.inkSoft}; }
+    ::-webkit-scrollbar-thumb { background: ${C.goldDark}; border-radius: 4px; }
+
+    .product-card-img-bg {
+      background: radial-gradient(circle at 50% 60%, var(--cardp, ${C.brown}) 0%, ${C.ink} 100%);
+    }
+
+    @keyframes float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-15px) } }
+    .float { animation: float 6s ease-in-out infinite; }
   `}</style>
 );
 
-// ============================================================
-// BRAND COLORS
-// ============================================================
-const C = {
-  navy: '#2D1810',
-  navyDark: '#1A0E08',
-  orange: '#C9A961',
-  orangeDark: '#A8893F',
-  cream: '#F5EDD8',
-  warm: '#F0E6CC',
-  ink: '#1A1A1A',
-  muted: '#6B7280',
-};
-
-// ============================================================
-// LOGO ADAPTADO
-// ============================================================
-const Logo = ({ variant = 'header' }) => {
-  if (variant === 'mark') {
-    return (
-      <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: C.navy }}>
-        <span className="f-archivo font-black text-white text-lg">N</span>
-        <span className="f-archivo font-black text-lg ml-[1px]" style={{ color: C.orange }}>i</span>
-      </div>
-    );
-  }
-  return (
-    <div className="flex items-center gap-2.5">
-      <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: C.navy }}>
-        <Globe size={18} className="text-white" strokeWidth={2.5} />
-      </div>
-      <div className="leading-none">
-        <div className="f-archivo font-black text-xl tracking-tight leading-none">
-          <span style={{ color: C.navy }}>Nova</span>
-          <span style={{ color: C.orange }}> Import</span>
-        </div>
-
-      </div>
-    </div>
-  );
-};
-
-// ============================================================
-// PRODUCT DATA
-// ============================================================
+// PLACEHOLDER: PRODUCTS array goes here
 const PRODUCTS = [
   {
     id: 'khamrah',
@@ -2702,1774 +2719,710 @@ const PRODUCTS = [
     ],
     imageUrl: 'https://nova-import-catalogo.vercel.app/images/products/arabes/amber-rouge-premium.jpg',
     gallery: ['https://nova-import-catalogo.vercel.app/images/products/arabes/amber-rouge-premium.jpg', 'https://nova-import-catalogo.vercel.app/images/products/tamanos-disponibles.png'],
-  },
-
+  }
 ];
 
-const BRANDS = ['Lattafa', 'Armaf', 'Afnan', 'Bharara'];
-const FAMILIES = ['Oriental Dulce', 'Oriental Café', 'Oud Frutal', 'Amaderado Aromático', 'Oriental Cuero', 'Oriental Especiado', 'Aromático Fougère', 'Floral Oriental', 'Gourmand Frutal', 'Aromático Frutal', 'Aromático Fresco', 'Acuático Amaderado', 'Aromático Cítrico', 'Oriental Floral', 'Cítrico Fresco'];
-
-const fmt = (n) => `$${n.toLocaleString('es-CO')}`;
-const minPrice = (p) => Math.min(...p.variants.map(v => v.price));
-const maxPrice = (p) => Math.max(...p.variants.map(v => v.price));
-const totalStock = (p) => p.variants.reduce((s, v) => s + v.stock, 0);
-
-// Wishlist (localStorage based)
-const WISHLIST_KEY = 'novaimport_wishlist';
-let wishlistCache = null;
-let wishlistListeners = [];
-const getWishlist = () => {
-  if (wishlistCache !== null) return wishlistCache;
-  try {
-    const raw = typeof window !== 'undefined' ? window.localStorage.getItem(WISHLIST_KEY) : null;
-    wishlistCache = raw ? JSON.parse(raw) : [];
-  } catch (e) { wishlistCache = []; }
-  return wishlistCache;
-};
-const isInWishlist = (id) => getWishlist().includes(id);
-const toggleWishlist = (id) => {
-  const list = getWishlist();
-  const idx = list.indexOf(id);
-  if (idx >= 0) list.splice(idx, 1);
-  else list.push(id);
-  wishlistCache = [...list];
-  try { window.localStorage.setItem(WISHLIST_KEY, JSON.stringify(wishlistCache)); } catch (e) {}
-  wishlistListeners.forEach(fn => fn(wishlistCache));
-};
-const useWishlist = () => {
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const listener = () => setTick(t => t + 1);
-    wishlistListeners.push(listener);
-    return () => { wishlistListeners = wishlistListeners.filter(l => l !== listener); };
-  }, []);
-  return getWishlist();
+const formatPrice = (n) => '$' + n.toLocaleString('es-CO');
+const getShopifyUrl = (p) => `${SHOPIFY_BASE}/products/${p.id}`;
+const buildWA = (perfume) => {
+  const text = perfume
+    ? `Hola Ámbar Perfumería, me interesa ${perfume.name}. ¿Está disponible?`
+    : 'Hola Ámbar Perfumería, quisiera asesoría para escoger un perfume.';
+  return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`;
 };
 
-// Comments (localStorage based)
-const COMMENTS_KEY = 'novaimport_comments';
-let commentsCache = null;
-let commentsListeners = [];
-const getAllComments = () => {
-  if (commentsCache !== null) return commentsCache;
-  try {
-    const raw = typeof window !== 'undefined' ? window.localStorage.getItem(COMMENTS_KEY) : null;
-    commentsCache = raw ? JSON.parse(raw) : {};
-  } catch (e) { commentsCache = {}; }
-  return commentsCache;
-};
-const getCommentsForProduct = (id) => (getAllComments()[id] || []);
-const addComment = (productId, { name, rating, text }) => {
-  const all = { ...getAllComments() };
-  const list = all[productId] ? [...all[productId]] : [];
-  list.unshift({
-    id: Date.now(),
-    name: (name || 'Anónimo').trim().slice(0, 60),
-    rating: Math.max(1, Math.min(5, Number(rating) || 5)),
-    text: (text || '').trim().slice(0, 600),
-    date: new Date().toISOString(),
-  });
-  all[productId] = list;
-  commentsCache = all;
-  try { window.localStorage.setItem(COMMENTS_KEY, JSON.stringify(all)); } catch (e) {}
-  commentsListeners.forEach(fn => fn(all));
-};
-const useComments = (productId) => {
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const listener = () => setTick(t => t + 1);
-    commentsListeners.push(listener);
-    return () => { commentsListeners = commentsListeners.filter(l => l !== listener); };
-  }, []);
-  return getCommentsForProduct(productId);
-};
-
-// E-commerce links — generate search URLs by product name
-const SHOPIFY_BASE = 'https://ambar-perfumeria-7.myshopify.com';
-const MERCADOLIBRE_BASE = 'https://listado.mercadolibre.com.co';
-const buildSearchTerm = (product) => {
-  const base = product.name.replace(/[·\u00b7\u2022]/g, '').replace(/\s+/g,' ').trim();
-  return encodeURIComponent(base);
-};
-const getMercadoLibreUrl = (product) => product.mercadoLibreUrl || `${MERCADOLIBRE_BASE}/${buildSearchTerm(product)}`;
-const getShopifyUrl = (product) => `${SHOPIFY_BASE}/products/${product.id}`;
-
-// ============================================================
-// PRODUCT IMAGE — Photographic style on white
-// ============================================================
-const ProductImage = ({ product, aspect = 'aspect-square', size = 'md' }) => {
-  const { primary, accent, shadow } = product.color;
-  const isInsp = product.type === 'inspirado';
-  
-  // If real product image URL is provided, use it instead of CSS bottle
-  if (product.imageUrl && product.imageUrl.trim() !== '') {
-    return (
-      <div className={`relative ${aspect} bg-white overflow-hidden flex items-center justify-center`}>
-        <div className="absolute inset-0" style={{
-          background: `radial-gradient(ellipse at 50% 70%, ${primary}08 0%, transparent 65%)`
-        }} />
-        <img
-          src={product.imageUrl}
-          alt={product.name}
-          className="relative max-w-[85%] max-h-[85%] object-contain"
-          style={{ filter: `drop-shadow(0 20px 30px ${shadow})` }}
-          onError={(e) => { e.target.style.display = 'none'; }}
-        />
-        {isInsp && (
-          <div className="absolute top-2 right-2 px-2 py-0.5 f-archivo text-[8px] tracking-[0.18em] font-bold uppercase" style={{ background: C.navy, color: 'white' }}>
-            Esencia inspirada
-          </div>
-        )}
-      </div>
-    );
-  }
-  
+// =========================================================================
+// PROMO MARQUEE
+// =========================================================================
+function PromoMarquee() {
+  const items = [
+    '◆ IMPORTAMOS DIRECTO DESDE DUBAI',
+    '◆ ENVÍO GRATIS DESDE $150.000',
+    '◆ PAGO CONTRA ENTREGA · NEQUI · ADDI',
+    '◆ MARCAS ÁRABES 100% ORIGINALES',
+    '◆ GARANTÍA DE AUTENTICIDAD',
+  ];
   return (
-    <div className={`relative ${aspect} bg-white overflow-hidden flex items-end justify-center`}>
-      {/* Background subtle gradient */}
-      <div className="absolute inset-0" style={{
-        background: `radial-gradient(ellipse at 50% 70%, ${primary}10 0%, transparent 65%)`
-      }} />
-      {/* Floor shadow ellipse */}
-      <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 w-[60%] h-3 rounded-full blur-md" style={{ background: shadow }} />
-      {/* "Esencia inspirada" badge */}
-      {isInsp && (
-        <div className="absolute top-2 right-2 px-2 py-0.5 f-archivo text-[8px] tracking-[0.18em] font-bold uppercase z-10" style={{ background: C.navy, color: 'white' }}>
-          Esencia inspirada
-        </div>
-      )}
-      
-      {/* Bottle */}
-      <div className="relative w-[42%] h-[78%] mb-[10%]" style={{ filter: `drop-shadow(0 25px 35px ${shadow})` }}>
-        {/* Cap */}
-        <div className="absolute top-0 left-[20%] right-[20%] h-[12%] rounded-t-sm" style={{
-          background: `linear-gradient(180deg, #2A2520 0%, #1A1612 50%, #0A0805 100%)`,
-        }} />
-        {/* Cap detail line */}
-        <div className="absolute left-[18%] right-[18%] h-[1.5%]" style={{ top: '11%', background: '#0a0805' }} />
-        {/* Neck */}
-        <div className="absolute left-[28%] right-[28%] h-[8%]" style={{
-          top: '12.5%',
-          background: `linear-gradient(180deg, ${primary}90 0%, ${primary}70 100%)`,
-        }} />
-        {/* Shoulder */}
-        <div className="absolute left-[5%] right-[5%] h-[6%]" style={{
-          top: '20%',
-          background: `linear-gradient(180deg, ${accent} 0%, ${primary} 100%)`,
-          clipPath: 'polygon(10% 0, 90% 0, 100% 100%, 0 100%)',
-        }} />
-        {/* Body */}
-        <div className="absolute left-0 right-0 rounded-b-sm" style={{
-          top: '25%',
-          bottom: 0,
-          background: `linear-gradient(135deg, ${primary} 0%, ${accent} 35%, ${primary} 60%, ${accent}CC 100%)`,
-        }}>
-          {/* Highlight strip left */}
-          <div className="absolute left-[8%] top-[5%] bottom-[5%] w-[8%]" style={{
-            background: `linear-gradient(180deg, transparent 0%, rgba(255,255,255,0.15) 30%, rgba(255,255,255,0.05) 100%)`,
-            filter: 'blur(2px)',
-          }} />
-          {/* Highlight right */}
-          <div className="absolute right-[12%] top-[10%] bottom-[10%] w-[3%]" style={{
-            background: `linear-gradient(180deg, rgba(255,255,255,0.25) 0%, transparent 100%)`,
-            filter: 'blur(1px)',
-          }} />
-          {/* Label */}
-          <div className="absolute left-[12%] right-[12%] top-[35%] bottom-[30%] flex flex-col items-center justify-center text-center px-1" style={{
-            background: 'linear-gradient(180deg, #FAFAF7 0%, #F0EDE6 100%)',
-            boxShadow: 'inset 0 0 10px rgba(0,0,0,0.05)',
-          }}>
-            <div className="f-archivo font-black text-[7px] tracking-[0.15em]" style={{ color: C.navy }}>NOVA</div>
-            <div className="f-archivo font-bold text-[5px] tracking-[0.2em]" style={{ color: C.orange }}>IMPORT</div>
-            <div className="w-3 border-t my-[3px]" style={{ borderColor: primary, opacity: 0.4 }} />
-            <div className="f-fraunces italic text-[7px] leading-tight" style={{ color: '#1A1612' }}>
-              {isInsp ? product.inspiredBy?.replace('tipo ', '') : product.name}
-            </div>
-            <div className="f-archivo text-[4px] tracking-[0.2em] mt-[1px]" style={{ color: '#6B5A4A' }}>EAU DE PARFUM</div>
-          </div>
-        </div>
+    <div className="overflow-hidden border-b py-2.5" style={{background: C.ink, borderColor: C.gold + '20'}}>
+      <div className="flex marquee whitespace-nowrap">
+        {[...items, ...items, ...items, ...items].map((it, i) => (
+          <span key={i} className="mx-10 f-mono" style={{color: C.goldLight}}>{it}</span>
+        ))}
       </div>
     </div>
   );
-};
+}
 
-// ============================================================
-// MARQUEE
-// ============================================================
-const Marquee = () => (
-  <div className="overflow-hidden text-white" style={{ background: C.navy }}>
-    <div className="flex marquee whitespace-nowrap py-2.5">
-      {[...Array(3)].map((_, i) => (
-        <div key={i} className="flex items-center gap-10 px-5 f-archivo text-xs font-medium tracking-wide">
-          <span>✈ IMPORTAMOS DIRECTO DESDE DUBÁI</span>
-          <span style={{ color: C.orange }}>·</span>
-          <span>📦 ENVÍO GRATIS DESDE $150.000</span>
-          <span style={{ color: C.orange }}>·</span>
-          <span>💳 PAGA CON ADDI HASTA EN 4 CUOTAS</span>
-          <span style={{ color: C.orange }}>·</span>
-          <span>🇦🇪 MARCAS ÁRABES 100% ORIGINALES</span>
-          <span style={{ color: C.orange }}>·</span>
-        </div>
-      ))}
-    </div>
-  </div>
-);
-
-// ============================================================
+// =========================================================================
 // HEADER
-// ============================================================
-const Header = ({ onNavigate, currentView, cartCount, onCartOpen, searchQuery }) => {
-  const [open, setOpen] = useState(false);
-  const wishlist = useWishlist();
-  const wishlistCount = wishlist.length;
-  const links = [
-    { id: 'catalog-bebe', label: 'Bebé' },
-    { id: 'catalog-mascotas', label: 'Mascotas' },
-    { id: 'catalog-hogar', label: 'Hogar' },
-    { id: 'catalog-perfumeria', label: 'Perfumería' },
-    { id: 'catalog-bestsellers', label: 'Más vendidos', highlight: true },
-    { id: 'maison', label: 'Nosotros' },
+// =========================================================================
+function Header({ onNav, currentFilter, currentView, cartCount, onCartOpen }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const navItems = [
+    { key: 'all', label: 'Catálogo' },
+    { key: 'mujer', label: 'Femeninos' },
+    { key: 'hombre', label: 'Masculinos' },
+    { key: 'unisex', label: 'Unisex' },
+    { key: 'arabes', label: 'Árabes' },
+    { key: 'inspirados', label: 'Esencias' },
   ];
-  
+  const active = (key) => currentView === 'catalog' && currentFilter === key;
   return (
-    <>
-      <Marquee />
-      <header className="sticky top-0 z-40 bg-white border-b" style={{ borderColor: '#E5E5E0' }}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 h-20 flex items-center gap-6">
-          <button className="lg:hidden" onClick={() => setOpen(true)}>
-            <Menu size={22} style={{ color: C.navy }} />
-          </button>
-          
-          <button onClick={() => onNavigate('home')} className="flex-shrink-0">
-            <Logo />
-          </button>
-          
-          <nav className="hidden lg:flex items-center gap-7 ml-6 f-archivo text-sm font-semibold">
-            {links.map(l => (
-              <button
-                key={l.id}
-                onClick={() => onNavigate(l.id)}
-                className={`hover:opacity-70 transition-opacity ${l.highlight ? 'flex items-center gap-1.5' : ''}`}
-                style={{ color: l.highlight ? C.orange : C.ink }}
-              >
-                {l.highlight && <Star size={12} fill={C.orange} />}
-                {l.label}
-              </button>
-            ))}
-          </nav>
-          
-          <form
-            onSubmit={(e) => { e.preventDefault(); const q = (e.target.q.value || '').trim(); if (q) onNavigate({ view: 'search', q }); }}
-            className="flex-1 max-w-md relative hidden md:block ml-4"
-          >
-            <input
-              name="q"
-              defaultValue={searchQuery || ''}
-              className="w-full bg-stone-100 px-4 py-2.5 pl-10 text-sm rounded-full focus:outline-none focus:ring-2 f-dm"
-              placeholder="Buscar perfume, marca, familia…"
-            />
-            <Search size={16} className="absolute left-3.5 top-3 text-stone-400" />
-          </form>
-          
-          <div className="flex gap-4 items-center" style={{ color: C.navy }}>
-            <a
-              href={`https://wa.me/573173641851?text=${encodeURIComponent('Hola Ámbar Perfumería, quiero hacer seguimiento de mi pedido. Mi número es: ')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:block"
-              title="Seguir pedido por WhatsApp"
-            >
-              <Package size={20} />
-            </a>
-            <button onClick={() => onNavigate('wishlist')} className="relative" title="Favoritos">
-              <Heart size={20} />
-              {wishlistCount > 0 && (
-                <span className="absolute -top-2 -right-2 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold f-archivo" style={{ background: C.orange }}>
-                  {wishlistCount}
-                </span>
-              )}
-            </button>
-            <button onClick={onCartOpen} className="relative">
-              <ShoppingBag size={20} />
-              {cartCount > 0 && (
-                <span className="absolute -top-2 -right-2 text-white text-[10px] rounded-full w-5 h-5 flex items-center justify-center font-bold f-archivo" style={{ background: C.orange }}>
-                  {cartCount}
-                </span>
-              )}
-            </button>
-          </div>
-        </div>
-        
-        {/* Subnav */}
-        <div className="border-t hidden lg:block" style={{ borderColor: '#E5E5E0', background: '#FAFAF7' }}>
-          <div className="max-w-[1400px] mx-auto px-8 py-2.5 flex gap-6 text-xs f-archivo font-medium overflow-x-auto" style={{ color: C.muted }}>
-            <span className="flex items-center gap-1.5"><Truck size={12} /> Envío 24-72h a todo Colombia</span>
-            <span className="flex items-center gap-1.5"><Shield size={12} /> Garantía de autenticidad</span>
-            <span className="flex items-center gap-1.5"><Lock size={12} /> Pago contraentrega · Nequi · Transferencia</span>
-            <span className="flex items-center gap-1.5"><MessageCircle size={12} /> Atención por WhatsApp</span>
-          </div>
-        </div>
-      </header>
-      
-      {/* Mobile drawer */}
-      {open && (
-        <div className="fixed inset-0 z-50 bg-white">
-          <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: '#E5E5E0' }}>
-            <Logo />
-            <button onClick={() => setOpen(false)}><X size={22} /></button>
-          </div>
-          <nav className="p-6 space-y-1 f-archivo">
-            {links.map(l => (
-              <button
-                key={l.id}
-                onClick={() => { onNavigate(l.id); setOpen(false); }}
-                className="block w-full text-left py-3 text-xl font-bold border-b"
-                style={{ borderColor: '#F0EDE6', color: l.highlight ? C.orange : C.ink }}
-              >
-                {l.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-      )}
-    </>
-  );
-};
-
-// ============================================================
-// PRODUCT CARD
-// ============================================================
-const ProductCard = ({ product, onClick }) => {
-  useWishlist(); // subscribe to wishlist changes
-  const stock = totalStock(product);
-  const min = minPrice(product);
-  const hasRange = product.variants.length > 1;
-  
-  return (
-    <div className="group cursor-pointer bg-white" onClick={onClick}>
-      <div className="relative">
-        <ProductImage product={product} aspect="aspect-square" />
-        
-        {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-          {product.bestseller && (
-            <span className="text-white px-2 py-1 text-[10px] f-archivo font-black tracking-wider" style={{ background: C.orange }}>
-              BESTSELLER
-            </span>
-          )}
-          {product.type === 'arabe' && (
-            <span className="text-white px-2 py-1 text-[10px] f-archivo font-bold tracking-wider" style={{ background: C.navy }}>
-              ÁRABE ORIGINAL
-            </span>
-          )}
-          {product.type === 'inspirado' && product.featured && (
-            <span className="bg-stone-900 text-white px-2 py-1 text-[10px] f-archivo font-bold tracking-wider">
-              DESTACADO
-            </span>
-          )}
-          {(product.type === 'bebe' || product.type === 'mascotas' || product.type === 'hogar') && product.featured && (
-            <span className="bg-stone-900 text-white px-2 py-1 text-[10px] f-archivo font-bold tracking-wider">
-              {product.type === 'bebe' ? 'BEBÉ' : product.type === 'mascotas' ? 'MASCOTAS' : 'HOGAR'}
-            </span>
-          )}
-        </div>
-        
-        {/* Stock indicator */}
-        {stock < 10 && stock > 0 && (
-          <span className="absolute top-3 right-3 bg-amber-50 text-amber-800 px-2 py-1 text-[10px] f-archivo font-bold border border-amber-300">
-            ÚLTIMAS {stock}
-          </span>
-        )}
-        {stock === 0 && (
-          <span className="absolute top-3 right-3 bg-stone-100 text-stone-500 px-2 py-1 text-[10px] f-archivo font-bold border">
-            AGOTADO
-          </span>
-        )}
-        
-        {/* Heart - Wishlist */}
-        <button
-          className="absolute bottom-3 right-3 w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-md hover:scale-110 transition-transform"
-          onClick={(e) => { e.stopPropagation(); toggleWishlist(product.id); }}
-          aria-label={isInWishlist(product.id) ? 'Quitar de favoritos' : 'Añadir a favoritos'}
-        >
-          <Heart
-            size={14}
-            strokeWidth={2}
-            fill={isInWishlist(product.id) ? C.orange : 'none'}
-            style={{ color: isInWishlist(product.id) ? C.orange : C.navy }}
-          />
+    <header className="sticky top-0 z-40 backdrop-blur-lg" style={{background: 'rgba(15,7,3,0.88)', borderBottom: `1px solid ${C.gold}25`}}>
+      <div className="max-w-7xl mx-auto px-6 py-5 flex items-center justify-between">
+        <button onClick={() => onNav('home')} className="flex items-baseline gap-2">
+          <span className="f-serif text-3xl italic" style={{color: C.pearl}}>Á</span>
+          <span className="f-display text-2xl gold-text">MBAR</span>
+          <span className="f-mono ml-1" style={{color: C.ash, fontSize: '0.55rem'}}>PERFUMERÍA</span>
         </button>
-      </div>
-      
-      <div className="pt-3 px-1 space-y-1">
-        <div className="flex items-center gap-2 text-[10px] f-archivo font-bold tracking-wider" style={{ color: C.muted }}>
-          {product.type === 'arabe' ? (
-            <span style={{ color: C.navy }}>{product.brand.toUpperCase()}</span>
-          ) : product.type === 'inspirado' ? (
-            <span style={{ color: C.orange }}>ÁMBAR PERFUMERÍA</span>
-          ) : (
-            <span style={{ color: C.orange }}>ÁMBAR PERFUMERÍA</span>
-          )}
-          <span>·</span>
-          <span>{product.family.toUpperCase()}</span>
-        </div>
-        <h3 className="f-archivo font-bold text-base leading-tight" style={{ color: C.ink }}>
-          {product.name}
-        </h3>
-        <p className="text-xs line-clamp-1 f-dm" style={{ color: C.muted }}>{product.notes}</p>
-        <div className="flex items-baseline gap-2 pt-1">
-          <span className="f-archivo font-black text-lg" style={{ color: C.ink }}>{fmt(min)}</span>
-          {hasRange && <span className="f-dm text-xs" style={{ color: C.muted }}>desde · {product.variants[0].size}</span>}
-        </div>
-        <div className="flex items-center gap-1 text-xs pt-1">
-          <Star size={11} fill={C.orange} style={{ color: C.orange }} />
-          <span className="f-archivo font-bold">{(4.6 + Math.random() * 0.3).toFixed(1)}</span>
-          <span className="f-dm" style={{ color: C.muted }}>({Math.floor(Math.random() * 150) + 30})</span>
-        </div>
-      </div>
-    </div>
-  );
-};
 
-// ============================================================
-// HOME
-// ============================================================
-const Home = ({ onNavigate, onSelectProduct }) => {
-  const arabes = PRODUCTS.filter(p => p.type === 'arabe');
-  const inspirados = PRODUCTS.filter(p => p.type === 'inspirado');
-  const bestsellers = PRODUCTS.filter(p => p.bestseller);
-  
-  return (
-    <main className="bg-white f-dm">
-      {/* Hero */}
-      <section className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${C.navy} 0%, ${C.navyDark} 100%)` }}>
-        <div className="absolute inset-0 opacity-30" style={{
-          background: `radial-gradient(circle at 80% 50%, ${C.orange}40 0%, transparent 50%)`
-        }} />
-        <div className="absolute inset-0 grain opacity-50" />
-        
-        <div className="relative max-w-[1400px] mx-auto px-4 lg:px-8 py-12 lg:py-20 grid lg:grid-cols-2 gap-8 items-center">
-          <div className="text-white space-y-6">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full f-archivo text-xs font-bold tracking-wider" style={{ background: 'rgba(245,130,32,0.2)', color: C.orange }}>
-              <Sparkles size={12} /> IMPORTACIÓN DIRECTA
-            </div>
-            <h1 className="f-archivo font-black text-5xl md:text-6xl lg:text-7xl leading-[0.95] tracking-tight">
-              Productos<br />que se<br />
-              <span style={{ color: C.orange }}>venden solos.</span>
-            </h1>
-            <p className="text-white/80 max-w-md text-lg leading-relaxed">
-              Importamos tendencias, perfumería y productos seleccionados con calidad garantizada y envíos rápidos a toda Colombia.
-            </p>
-            <div className="flex flex-wrap gap-3 pt-2">
-              <button onClick={() => onNavigate('catalog')} className="px-7 py-4 f-archivo font-bold text-sm tracking-wide flex items-center gap-3 hover:scale-105 transition-transform" style={{ background: C.orange, color: 'white' }}>
-                EXPLORAR CATÁLOGO <ArrowRight size={16} />
-              </button>
-              <button onClick={() => onNavigate('catalog-bestsellers')} className="border-2 border-white text-white px-7 py-4 f-archivo font-bold text-sm tracking-wide hover:bg-white hover:text-stone-900 transition-colors">
-                LOS MÁS VENDIDOS
-              </button>
-            </div>
-            <div className="flex gap-6 pt-4 text-sm">
-              <div className="flex items-center gap-2"><Star size={14} fill={C.orange} style={{ color: C.orange }} /><span><strong className="f-archivo">4.9</strong> · +5.000 clientes</span></div>
-              <div className="flex items-center gap-2"><Check size={14} style={{ color: C.orange }} /><span>+5.000 clientes</span></div>
-            </div>
-          </div>
-          
-          <div className="relative hidden lg:block">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="bg-white"><ProductImage product={PRODUCTS[0]} aspect="aspect-[3/4]" /></div>
-                <div className="bg-white"><ProductImage product={PRODUCTS[7]} aspect="aspect-square" /></div>
-              </div>
-              <div className="space-y-4 pt-12">
-                <div className="bg-white"><ProductImage product={PRODUCTS[3]} aspect="aspect-square" /></div>
-                <div className="bg-white"><ProductImage product={PRODUCTS[9]} aspect="aspect-[3/4]" /></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Trust strip */}
-      <section className="border-b" style={{ borderColor: '#E5E5E0', background: C.cream }}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-6 grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
-          {[
-            { icon: Truck, title: 'Despachos nacionales rápidos', sub: 'Entregas de 24 a 72 horas en ciudades principales.' },
-            { icon: Award, title: 'Productos seleccionados', sub: 'Importamos referencias con alta demanda y excelente relación calidad-precio.' },
-            { icon: Shield, title: 'Compra con confianza', sub: 'Pagos seguros y soporte directo por WhatsApp.' },
-            { icon: Sparkles, title: 'Nuevos productos constantemente', sub: 'Actualizamos el catálogo con tendencias y productos virales.' },
-          ].map((t, i) => {
-            const Icon = t.icon;
-            return (
-              <div key={i} className="flex items-center justify-center gap-3">
-                <Icon size={28} strokeWidth={1.5} style={{ color: C.orange }} />
-                <div className="text-left">
-                  <div className="f-archivo font-bold text-sm">{t.title}</div>
-                  <div className="text-xs" style={{ color: C.muted }}>{t.sub}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-      
-      {/* Categories grid */}
-      <section className="py-12 lg:py-16">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          <div className="text-center mb-10">
-            <h2 className="f-archivo font-black text-3xl lg:text-4xl mb-2">Encuentra tu próxima firma</h2>
-            <p className="text-stone-600">Filtrado por tu estilo</p>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { id: 'catalog-bebe', label: 'BEBÉ', sub: 'Vajilla · Juguetes · Esenciales', color: '#A8475C' },
-              { id: 'catalog-mascotas', label: 'MASCOTAS', sub: 'Entrenamiento · Cuidado', color: '#2A6B4A' },
-              { id: 'catalog-hogar', label: 'HOGAR', sub: 'Organización · Baño · Cocina', color: C.navy },
-              { id: 'catalog-perfumeria', label: 'PERFUMERÍA', sub: 'Árabes · Inspirados premium', color: C.orange },
-            ].map(c => (
-              <button key={c.id} onClick={() => onNavigate(c.id)} className="aspect-[4/5] lg:aspect-[3/4] relative overflow-hidden group" style={{ background: c.color }}>
-                <div className="absolute inset-0 opacity-90 group-hover:opacity-100 transition-opacity" style={{ background: `linear-gradient(180deg, ${c.color}DD 0%, ${c.color} 100%)` }} />
-                <div className="absolute inset-0 grain opacity-30" />
-                <div className="relative h-full flex flex-col justify-end p-6 text-white">
-                  <div className="f-archivo font-black text-2xl lg:text-3xl tracking-tight mb-1">{c.label}</div>
-                  <div className="text-xs lg:text-sm opacity-80 mb-3">{c.sub}</div>
-                  <div className="flex items-center gap-2 f-archivo font-bold text-xs">
-                    EXPLORAR <ArrowRight size={14} />
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* Bestsellers */}
-      <section className="py-12 lg:py-16" style={{ background: C.cream }}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          <div className="flex items-end justify-between mb-8">
-            <div>
-              <div className="f-mono mb-2" style={{ color: C.orange }}>★ MÁS VENDIDOS</div>
-              <h2 className="f-archivo font-black text-3xl lg:text-4xl">Los favoritos del mes</h2>
-            </div>
-            <button onClick={() => onNavigate('catalog-bestsellers')} className="hidden md:flex items-center gap-2 f-archivo font-bold text-sm hover:gap-3 transition-all" style={{ color: C.navy }}>
-              Ver todos <ArrowRight size={14} />
-            </button>
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
-            {bestsellers.slice(0, 4).map(p => <ProductCard key={p.id} product={p} onClick={() => onSelectProduct(p.id)} />)}
-          </div>
-        </div>
-      </section>
-      
-      {/* Brands Strip - Árabes */}
-      <section className="py-12 lg:py-16">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          <div className="text-center mb-10 max-w-2xl mx-auto">
-            <div className="f-mono mb-3" style={{ color: C.navy }}>🇦🇪 MARCAS ÁRABES ORIGINALES</div>
-            <h2 className="f-archivo font-black text-3xl lg:text-4xl mb-3">Importados directo desde Dubái</h2>
-            <p style={{ color: C.muted }}>Lattafa, Armaf, Afnan, Bharara. Las casas árabes más reconocidas del mundo, con certificado de autenticidad.</p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-4 lg:gap-8 mb-10">
-            {BRANDS.map(b => (
-              <div key={b} className="px-6 py-3 border-2 rounded-full f-archivo font-bold" style={{ borderColor: C.navy, color: C.navy }}>{b}</div>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
-            {arabes.slice(0, 4).map(p => <ProductCard key={p.id} product={p} onClick={() => onSelectProduct(p.id)} />)}
-          </div>
-          <div className="text-center mt-8">
-            <button onClick={() => onNavigate('catalog-arabe')} className="px-7 py-3.5 f-archivo font-bold text-sm tracking-wide border-2 hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-colors" style={{ borderColor: C.ink, color: C.ink }}>
-              VER TODOS LOS ÁRABES
-            </button>
-          </div>
-        </div>
-      </section>
-      
-      {/* CATÁLOGO COMPLETO — Ámbar Perfumería Esencias Inspiradas */}
-      <section className="py-16 lg:py-20" style={{ background: C.warm }}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          
-          {/* Section header */}
-          <div className="text-center mb-8 max-w-2xl mx-auto">
-            <div className="f-mono mb-3" style={{ color: C.orange }}>★ ÁMBAR PERFUMERÍA · CATÁLOGO COMPLETO</div>
-            <h2 className="f-archivo font-black text-3xl lg:text-5xl mb-4">Esencias Inspiradas</h2>
-            <p className="text-base lg:text-lg" style={{ color: C.muted }}>
-              Nuestra línea propia de fragancias con perfiles olfativos inspirados en grandes casas de perfumería. Disponibles en 30, 50, 75 y 100 ml. Dos calidades: <strong>AA estándar</strong> y <strong>AAA premium</strong>.
-            </p>
-          </div>
-          
-          {/* LEGAL DISCLAIMER — prominent banner */}
-          <div className="max-w-3xl mx-auto mb-10 p-5 lg:p-6 border-2 flex items-start gap-3" style={{ borderColor: C.navy, background: 'rgba(27,58,111,0.04)' }}>
-            <Info size={20} className="shrink-0 mt-0.5" style={{ color: C.navy }} strokeWidth={2} />
-            <div className="text-xs lg:text-sm leading-relaxed" style={{ color: C.ink }}>
-              <strong className="f-archivo tracking-wide" style={{ color: C.navy }}>AVISO IMPORTANTE.</strong>{' '}
-              Los productos de la línea <strong>Ámbar Perfumería</strong> son <strong>esencias inspiradas</strong> en perfiles olfativos de fragancias comerciales reconocidas. <strong>No son los perfumes originales</strong>. No están afiliados, autorizados ni producidos por las casas matrices referenciadas. Las marcas mencionadas son propiedad de sus respectivos titulares y se citan únicamente como referencia descriptiva del perfil olfativo del producto.
-            </div>
-          </div>
-          
-          {/* Full inspirados grid */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
-            {inspirados.map(p => <ProductCard key={p.id} product={p} onClick={() => onSelectProduct(p.id)} />)}
-          </div>
-          
-          <div className="text-center mt-10">
-            <button onClick={() => onNavigate('catalog-inspirado')} className="px-7 py-3.5 f-archivo font-bold text-sm tracking-wide border-2 hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-colors" style={{ borderColor: C.ink, color: C.ink }}>
-              FILTRAR Y EXPLORAR LÍNEA COMPLETA
-            </button>
-          </div>
-        </div>
-      </section>
-      
-    </main>
-  );
-};
-
-// ============================================================
-// CATALOG
-// ============================================================
-const DEFAULT_FILTERS = { gender: 'todos', type: 'todos', brand: 'todos', family: 'todos' };
-
-const Catalog = ({ initialFilter = {}, onSelectProduct, title = 'Catálogo completo' }) => {
-  const [filters, setFilters] = useState({
-    ...DEFAULT_FILTERS,
-    gender: initialFilter.gender || 'todos',
-    type: initialFilter.type || 'todos',
-    ...initialFilter,
-  });
-  const [sort, setSort] = useState('relevance');
-  const [showAllOverride, setShowAllOverride] = useState(false);
-
-  // Available filter values are computed dynamically from the products that match the lock filters (bestseller/typeIn)
-  // so the user only sees options that will actually return results.
-  const lockedProducts = PRODUCTS.filter(p => {
-    if (filters.bestseller && !p.bestseller) return false;
-    if (filters.typeIn && Array.isArray(filters.typeIn) && !filters.typeIn.includes(p.type)) return false;
-    return true;
-  });
-
-  // Extrae la marca de un producto: usa p.brand si existe, si no extrae de p.inspiredBy
-  // Reconoce marcas compuestas (Jean Paul Gaultier, Yves Saint Laurent, etc.)
-  const KNOWN_COMPOUND_BRANDS = [
-    'Jean Paul Gaultier', 'Yves Saint Laurent', 'Paco Rabanne', 'Carolina Herrera',
-    'Maison Francis Kurkdjian', 'Parfums de Marly', 'Bond No. 9', 'Hugo Boss',
-    'Ralph Lauren', 'Britney Spears', 'Ariana Grande', 'Paris Hilton',
-    'Perry Ellis', 'Tommy Hilfiger', 'Dolce & Gabbana',
-  ];
-  const extractBrand = (p) => {
-    if (p.brand) return p.brand;
-    if (!p.inspiredBy) return null;
-    for (const b of KNOWN_COMPOUND_BRANDS) {
-      if (p.inspiredBy.startsWith(b)) return b;
-    }
-    return p.inspiredBy.split(' ')[0];
-  };
-  const availableBrands = [...new Set(lockedProducts.map(extractBrand).filter(Boolean))].sort();
-  const availableFamilies = [...new Set(lockedProducts.map(p => p.family).filter(Boolean))];
-  const availableGenders = [...new Set(lockedProducts.map(p => p.gender).filter(Boolean))];
-
-  const filterDefs = [
-    { key: 'gender', label: 'Género', opts: ['todos', ...availableGenders] },
-    { key: 'type', label: 'Tipo', opts: [
-      { v: 'todos', l: 'Todos' },
-      { v: 'arabe', l: 'Marcas árabes' },
-      { v: 'inspirado', l: 'Inspirados' },
-      { v: 'bebe', l: 'Bebé' },
-      { v: 'mascotas', l: 'Mascotas' },
-      { v: 'hogar', l: 'Hogar' },
-    ]},
-    { key: 'brand', label: 'Marca', opts: ['todos', ...availableBrands] },
-    { key: 'family', label: 'Familia', opts: ['todos', ...availableFamilies] },
-  ];
-
-  const activeFiltersCount = filterDefs.reduce((n, f) => n + (filters[f.key] !== 'todos' ? 1 : 0), 0);
-
-  // showAllOverride bypasses initialFilter — useful for nav links that landed on a sub-catalog
-  const baseProducts = showAllOverride ? PRODUCTS : lockedProducts;
-
-  let products = baseProducts.filter(p => {
-    if (filters.gender !== 'todos' && p.gender !== filters.gender && p.gender !== 'Unisex') return false;
-    if (filters.type !== 'todos' && p.type !== filters.type) return false;
-    if (filters.brand !== 'todos' && extractBrand(p) !== filters.brand) return false;
-    if (filters.family !== 'todos' && p.family !== filters.family) return false;
-    return true;
-  });
-
-  if (sort === 'price-asc') products = [...products].sort((a, b) => minPrice(a) - minPrice(b));
-  if (sort === 'price-desc') products = [...products].sort((a, b) => maxPrice(b) - maxPrice(a));
-
-  const resetAll = () => {
-    setFilters(DEFAULT_FILTERS);
-    setShowAllOverride(true);
-  };
-  
-  return (
-    <main className="bg-white min-h-screen f-dm">
-      <section className="py-10 lg:py-12 border-b" style={{ background: C.cream, borderColor: '#E5E5E0' }}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          <div className="f-mono mb-3" style={{ color: C.orange }}>EL CATÁLOGO</div>
-          <h1 className="f-archivo font-black text-4xl lg:text-5xl mb-3">{title}</h1>
-          <p style={{ color: C.muted }}>
-            {products.length} {products.length > 0 && products.every(p => p.type === 'arabe' || p.type === 'inspirado') ? 'fragancias' : 'productos'}
-            {activeFiltersCount > 0 ? ' filtrados' : ' disponibles'} · Envío a toda Colombia
-          </p>
-        </div>
-      </section>
-      
-      {/* Filters */}
-      <section className="border-b bg-white" style={{ borderColor: '#E5E5E0' }}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-4 flex flex-wrap items-center gap-2 lg:gap-3">
-          <div className="w-full lg:w-auto flex items-center gap-2 f-archivo text-xs font-bold mr-2" style={{ color: C.muted }}>
-            <Filter size={14} /> FILTROS
+        <nav className="hidden lg:flex items-center gap-8">
+          {navItems.map(n => (
             <button
-              onClick={resetAll}
-              className="ml-auto lg:ml-3 f-archivo text-xs font-bold px-3 py-1.5 rounded-full text-white transition-colors hover:opacity-90"
-              style={{ background: C.navy }}
+              key={n.key}
+              onClick={() => onNav('catalog', n.key)}
+              className="h-link f-mono"
+              style={{color: active(n.key) ? C.gold : C.pearl}}
             >
-              MOSTRAR TODOS
+              {n.label}
             </button>
-          </div>
-          <div className="flex gap-2 lg:gap-3 overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0 lg:flex-wrap w-full lg:w-auto pb-1 lg:pb-0">
-            {filterDefs.map(f => {
-              const isActive = filters[f.key] !== 'todos';
-              return (
-                <div key={f.key} className="relative flex-shrink-0">
-                  <select
-                    value={filters[f.key]}
-                    onChange={(e) => setFilters({ ...filters, [f.key]: e.target.value })}
-                    className="appearance-none f-archivo text-xs lg:text-sm font-semibold pl-3 lg:pl-4 pr-8 lg:pr-9 py-2 border-2 rounded-full cursor-pointer transition-colors"
-                    style={{
-                      borderColor: isActive ? C.orange : '#D5D5D0',
-                      background: isActive ? '#FFF7ED' : 'white',
-                      color: isActive ? C.orange : C.ink,
-                    }}
-                  >
-                    {f.opts.map(o => {
-                      const v = typeof o === 'object' ? o.v : o;
-                      const l = typeof o === 'object' ? o.l : o;
-                      return <option key={v} value={v}>{v === 'todos' ? `${f.label}: Todos` : `${f.label}: ${l}`}</option>;
-                    })}
-                  </select>
-                  <ChevronDown size={14} className="absolute right-2.5 top-2.5 pointer-events-none" style={{ color: isActive ? C.orange : C.ink }} />
-                </div>
-              );
-            })}
+          ))}
+        </nav>
 
-            {activeFiltersCount > 0 && (
-              <button
-                onClick={() => setFilters(DEFAULT_FILTERS)}
-                className="f-archivo text-xs font-bold underline hover:opacity-70 whitespace-nowrap self-center"
-                style={{ color: C.muted }}
-              >
-                Limpiar ({activeFiltersCount})
-              </button>
+        <div className="flex items-center gap-3">
+          <a href={buildWA()} target="_blank" rel="noopener noreferrer" className="hidden md:flex items-center gap-2 px-4 py-2 border f-mono transition hover:bg-amber-900/30" style={{borderColor: C.gold + '50', color: C.gold}}>
+            <MessageCircle size={14}/> ASESORÍA
+          </a>
+          <button onClick={onCartOpen} className="relative p-2">
+            <ShoppingBag size={22} color={C.gold} />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 text-[10px] w-5 h-5 flex items-center justify-center rounded-full font-bold" style={{background: C.gold, color: C.brown}}>{cartCount}</span>
             )}
-          </div>
-
-          <div className="lg:ml-auto relative w-full lg:w-auto">
-            <select
-              value={sort}
-              onChange={(e) => setSort(e.target.value)}
-              className="appearance-none f-archivo text-xs lg:text-sm font-semibold pl-3 lg:pl-4 pr-9 py-2 border rounded-full bg-white cursor-pointer w-full lg:w-auto"
-              style={{ borderColor: '#D5D5D0' }}
-            >
-              <option value="relevance">Ordenar: Relevancia</option>
-              <option value="price-asc">Precio: menor a mayor</option>
-              <option value="price-desc">Precio: mayor a menor</option>
-            </select>
-            <ChevronDown size={14} className="absolute right-3 top-2.5 pointer-events-none" />
-          </div>
-        </div>
-      </section>
-      
-      {/* Grid */}
-      <section className="py-10">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
-            {products.map(p => <ProductCard key={p.id} product={p} onClick={() => onSelectProduct(p.id)} />)}
-          </div>
-          {products.length === 0 && (
-            <div className="text-center py-20 f-dm" style={{ color: C.muted }}>
-              No hay productos con esos filtros. <button onClick={resetAll} className="underline" style={{ color: C.navy }}>Mostrar todos los productos</button>
-            </div>
-          )}
-        </div>
-      </section>
-    </main>
-  );
-};
-
-
-// ============================================================
-// REVIEWS BLOCK
-// ============================================================
-const ReviewsBlock = ({ productId }) => {
-  const comments = useComments(productId);
-  const [name, setName] = useState('');
-  const [rating, setRating] = useState(5);
-  const [text, setText] = useState('');
-  const [sent, setSent] = useState(false);
-
-  const avg = comments.length > 0
-    ? (comments.reduce((s, c) => s + c.rating, 0) / comments.length).toFixed(1)
-    : null;
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!text.trim()) return;
-    addComment(productId, { name, rating, text });
-    setText('');
-    setName('');
-    setRating(5);
-    setSent(true);
-    setTimeout(() => setSent(false), 2500);
-  };
-
-  return (
-    <div className="max-w-3xl space-y-8">
-      <div className="grid sm:grid-cols-2 gap-6 items-start">
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white p-5 border space-y-3" style={{ borderColor: '#E5E5E0' }}>
-          <div className="f-archivo font-bold text-sm" style={{ color: C.orange }}>DEJA TU RESEÑA</div>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Tu nombre (opcional)"
-            maxLength={60}
-            className="w-full border px-3 py-2 text-sm f-dm focus:outline-none focus:border-orange-500"
-            style={{ borderColor: '#D5D5D0' }}
-          />
-          <div className="flex items-center gap-1">
-            {[1,2,3,4,5].map(s => (
-              <button
-                type="button"
-                key={s}
-                onClick={() => setRating(s)}
-                aria-label={`${s} estrellas`}
-                className="p-0.5"
-              >
-                <Star size={20} fill={s <= rating ? C.orange : 'none'} style={{ color: C.orange }} />
-              </button>
-            ))}
-            <span className="text-xs f-archivo font-bold ml-2" style={{ color: C.muted }}>{rating}/5</span>
-          </div>
-          <textarea
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Cuéntanos qué te pareció..."
-            maxLength={600}
-            rows={4}
-            className="w-full border px-3 py-2 text-sm f-dm focus:outline-none focus:border-orange-500 resize-none"
-            style={{ borderColor: '#D5D5D0' }}
-          />
-          <button
-            type="submit"
-            disabled={!text.trim() || sent}
-            className="w-full py-3 f-archivo font-bold text-sm tracking-wide text-white transition-colors disabled:opacity-50"
-            style={{ background: sent ? '#10B981' : C.navy }}
-          >
-            {sent ? '¡GRACIAS POR TU RESEÑA!' : 'PUBLICAR RESEÑA'}
           </button>
-          <p className="text-[11px] f-dm" style={{ color: C.muted }}>
-            Tus reseñas se guardan en tu navegador y son visibles para ti. Pronto sincronizaremos con nuestra base de datos.
-          </p>
-        </form>
-
-        {/* Summary */}
-        <div className="space-y-4">
-          {avg !== null ? (
-            <div className="bg-white p-5 border" style={{ borderColor: '#E5E5E0' }}>
-              <div className="flex items-baseline gap-2">
-                <span className="f-archivo font-black text-4xl">{avg}</span>
-                <span className="text-sm" style={{ color: C.muted }}>/5</span>
-              </div>
-              <div className="flex items-center gap-1 my-2">
-                {[1,2,3,4,5].map(s => (
-                  <Star key={s} size={16} fill={s <= Math.round(avg) ? C.orange : 'none'} style={{ color: C.orange }} />
-                ))}
-              </div>
-              <p className="text-xs f-dm" style={{ color: C.muted }}>
-                Basado en {comments.length} {comments.length === 1 ? 'reseña' : 'reseñas'}
-              </p>
-            </div>
-          ) : (
-            <div className="bg-white p-5 border text-center" style={{ borderColor: '#E5E5E0' }}>
-              <Sparkles size={28} className="mx-auto mb-2" style={{ color: C.orange }} />
-              <p className="f-archivo font-bold">Sé el primero en opinar</p>
-              <p className="text-xs mt-1" style={{ color: C.muted }}>Comparte tu experiencia con este producto.</p>
-            </div>
-          )}
+          <button className="lg:hidden p-2" onClick={() => setMobileOpen(o => !o)}>
+            {mobileOpen ? <X size={22} color={C.gold}/> : <Menu size={22} color={C.gold}/>}
+          </button>
         </div>
       </div>
 
-      {/* List */}
-      {comments.length > 0 && (
-        <div className="space-y-4">
-          <div className="f-archivo font-bold text-sm" style={{ color: C.orange }}>OPINIONES RECIENTES</div>
-          {comments.map(c => (
-            <div key={c.id} className="bg-white p-4 border" style={{ borderColor: '#E5E5E0' }}>
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div>
-                  <div className="f-archivo font-bold">{c.name}</div>
-                  <div className="flex items-center gap-1 mt-1">
-                    {[1,2,3,4,5].map(s => (
-                      <Star key={s} size={12} fill={s <= c.rating ? C.orange : 'none'} style={{ color: C.orange }} />
-                    ))}
-                  </div>
-                </div>
-                <div className="text-[11px] f-dm" style={{ color: C.muted }}>
-                  {new Date(c.date).toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}
-                </div>
-              </div>
-              <p className="text-sm f-dm leading-relaxed mt-3" style={{ color: '#3A3A3A' }}>{c.text}</p>
+      {mobileOpen && (
+        <nav className="lg:hidden px-6 pb-6 flex flex-col gap-4 border-t" style={{borderColor: C.gold + '20'}}>
+          {navItems.map(n => (
+            <button key={n.key} onClick={() => { onNav('catalog', n.key); setMobileOpen(false); }} className="f-mono text-left py-2" style={{color: active(n.key) ? C.gold : C.pearl}}>{n.label}</button>
+          ))}
+        </nav>
+      )}
+    </header>
+  );
+}
+
+// =========================================================================
+// HERO — Editorial split with large bottle
+// =========================================================================
+function Hero({ onCta }) {
+  return (
+    <section className="relative overflow-hidden" style={{background: `linear-gradient(135deg, ${C.ink} 0%, ${C.warm} 60%, ${C.brown} 100%)`, minHeight: '92vh'}}>
+      <div className="absolute inset-0 grain opacity-50"></div>
+      <div className="absolute top-1/2 right-0 w-[700px] h-[700px] -translate-y-1/2 translate-x-1/4 rounded-full opacity-40" style={{background: `radial-gradient(circle, ${C.gold} 0%, transparent 65%)`}}></div>
+
+      <div className="max-w-7xl mx-auto px-6 py-20 md:py-32 grid md:grid-cols-2 gap-12 items-center relative z-10">
+        <div>
+          <p className="f-mono mb-6 fadeup" style={{color: C.gold}}>◆ IMPORTACIÓN DIRECTA · COLOMBIA</p>
+          <h1 className="f-serif text-[5.5rem] md:text-[7.5rem] font-light leading-[0.9] mb-8 fadeup-d1" style={{color: C.pearl}}>
+            Esencia
+            <br/>
+            en cada
+            <br/>
+            <em className="gold-text font-medium">gota.</em>
+          </h1>
+          <p className="text-lg leading-relaxed mb-10 max-w-lg fadeup-d2" style={{color: C.mute}}>
+            Perfumería árabe auténtica y esencias inspiradas en las casas más prestigiosas del mundo.
+            Cada frasco una historia, cada nota una promesa.
+          </p>
+          <div className="flex flex-wrap gap-4 fadeup-d2">
+            <button onClick={() => onCta('all')} className="px-8 py-4 f-mono transition hover:scale-[1.03] flex items-center gap-2" style={{background: C.gold, color: C.brown}}>
+              EXPLORAR CATÁLOGO <ArrowRight size={16}/>
+            </button>
+            <button onClick={() => onCta('arabes')} className="px-8 py-4 f-mono border transition hover:bg-amber-900/30" style={{borderColor: C.gold, color: C.gold}}>
+              ÁRABES PREMIUM
+            </button>
+          </div>
+        </div>
+
+        <div className="relative h-[500px] md:h-[650px] hidden md:flex items-center justify-center fadeup-d1">
+          <div className="relative w-[400px] h-[500px] float">
+            <div className="absolute -inset-20 rounded-full glow-gold opacity-60" style={{background: `radial-gradient(circle, ${C.gold} 0%, transparent 60%)`}}></div>
+            <img src="https://nova-import-catalogo.vercel.app/images/products/arabes/khamrah.jpg" alt="Khamrah Lattafa" className="w-full h-full object-contain relative z-10" />
+          </div>
+        </div>
+      </div>
+
+      {/* Trust strip */}
+      <div className="border-t relative z-10" style={{borderColor: C.gold + '20', background: 'rgba(15,7,3,0.6)'}}>
+        <div className="max-w-7xl mx-auto px-6 py-5 grid grid-cols-2 md:grid-cols-4 gap-6">
+          {[
+            {icon: Truck, label: 'Envío 24-72h'},
+            {icon: Award, label: 'Garantía autenticidad'},
+            {icon: Lock, label: 'Pago contra entrega'},
+            {icon: MessageCircle, label: 'Asesoría WhatsApp'},
+          ].map((it, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <it.icon size={18} color={C.gold}/>
+              <span className="f-mono" style={{color: C.pearl}}>{it.label}</span>
             </div>
           ))}
         </div>
-      )}
-    </div>
+      </div>
+    </section>
   );
-};
+}
 
-// ============================================================
-// PRODUCT DETAIL
-// ============================================================
-const ProductDetail = ({ product, onBack, onAddToCart, onWhatsAppBuy, onSelectProduct }) => {
-  const [activeImage, setActiveImage] = useState(0);
-  const [selectedVariant, setSelectedVariant] = useState(product.variants[0]);
-  const [qty, setQty] = useState(1);
-  const [added, setAdded] = useState(false);
-  const [tab, setTab] = useState('description');
-  const productComments = useComments(product.id);
-  const productAvgRating = productComments.length > 0
-    ? productComments.reduce((s, c) => s + c.rating, 0) / productComments.length
-    : 0;
-  
-  const handleAdd = () => {
-    onAddToCart(product, selectedVariant, qty);
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
-  };
-  
-  const handleWhatsApp = () => {
-    const msg = `Hola Ámbar Perfumería, quiero pedir:\n${product.name}${product.inspiredBy ? ' ' + product.inspiredBy : ''}\nPresentación: ${selectedVariant.size} · ${selectedVariant.tier}\nCantidad: ${qty}\nTotal: ${fmt(selectedVariant.price * qty)}`;
-    onWhatsAppBuy(msg);
-  };
-  
-  const sizeGroups = product.variants.reduce((acc, v) => {
-    if (!acc[v.size]) acc[v.size] = [];
-    acc[v.size].push(v);
-    return acc;
-  }, {});
-  
-  const tiers = [...new Set(product.variants.filter(v => v.size === selectedVariant.size).map(v => v.tier))];
-  
-  const related = PRODUCTS.filter(p => p.id !== product.id && (p.family === product.family || p.gender === product.gender)).slice(0, 4);
-  
+// =========================================================================
+// COLLECTION STRIP — Categories with images
+// =========================================================================
+function CollectionStrip({ products, onNav }) {
+  const counts = useMemo(() => ({
+    mujer: products.filter(p => p.gender === 'Mujer' || p.gender === 'Femenino').length,
+    hombre: products.filter(p => p.gender === 'Hombre' || p.gender === 'Masculino').length,
+    unisex: products.filter(p => p.gender === 'Unisex').length,
+    arabes: products.filter(p => p.type === 'arabe').length,
+    inspirados: products.filter(p => p.type === 'inspirado').length,
+  }), [products]);
+
+  const cats = [
+    { key: 'mujer', label: 'Femeninos', img: products.find(p => p.gender === 'Mujer' || p.gender === 'Femenino')?.imageUrl },
+    { key: 'hombre', label: 'Masculinos', img: products.find(p => p.gender === 'Hombre' || p.gender === 'Masculino')?.imageUrl },
+    { key: 'arabes', label: 'Árabes', img: products.find(p => p.type === 'arabe')?.imageUrl },
+    { key: 'inspirados', label: 'Esencias inspiradas', img: products.find(p => p.type === 'inspirado')?.imageUrl },
+    { key: 'unisex', label: 'Unisex', img: products.find(p => p.gender === 'Unisex')?.imageUrl },
+  ];
+
   return (
-    <main className="bg-white min-h-screen f-dm">
-      {/* Breadcrumb */}
-      <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-4 text-sm">
-        <button onClick={onBack} className="flex items-center gap-1.5 hover:opacity-70 f-archivo font-medium" style={{ color: C.muted }}>
-          <ChevronLeft size={14} /> Volver al catálogo
+    <section className="py-24 px-6 max-w-7xl mx-auto">
+      <div className="flex flex-wrap items-end justify-between mb-14 gap-6">
+        <div>
+          <p className="f-mono mb-3" style={{color: C.gold}}>◆ EXPLORA POR CATEGORÍA</p>
+          <h2 className="f-serif text-5xl md:text-6xl" style={{color: C.pearl}}>Nuestras <em className="gold-text">colecciones</em></h2>
+        </div>
+        <button onClick={() => onNav('all')} className="f-mono flex items-center gap-2 h-link" style={{color: C.gold}}>
+          VER TODOS LOS PERFUMES <ChevronRight size={14}/>
         </button>
       </div>
-      
-      <section className="pb-16">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 grid lg:grid-cols-2 gap-8 lg:gap-12">
-          {/* Left: image gallery */}
-          <div>
-            {(() => {
-              const isPerfume = product.type === 'arabe' || product.type === 'inspirado';
-              const galleryImages = product.gallery && product.gallery.length > 0
-                ? product.gallery
-                : isPerfume
-                  ? [product.imageUrl, 'https://nova-import-catalogo.vercel.app/images/products/tamanos-disponibles.png'].filter(Boolean)
-                  : product.imageUrl ? [product.imageUrl] : [];
-              const activeIdx = typeof activeImage === 'number' ? activeImage : 0;
-              const safeIdx = Math.min(activeIdx, Math.max(galleryImages.length - 1, 0));
-              const mainSrc = galleryImages[safeIdx];
-              return (
-                <>
-                  <div className="bg-white border" style={{ borderColor: '#E5E5E0' }}>
-                    {mainSrc ? (
-                      <div className="relative aspect-square bg-white overflow-hidden flex items-center justify-center">
-                        <img
-                          src={mainSrc}
-                          alt={product.name}
-                          className="relative max-w-[95%] max-h-[95%] object-contain"
-                          style={{ filter: isPerfume && safeIdx === galleryImages.length - 1 && mainSrc.includes('tamanos') ? 'none' : `drop-shadow(0 20px 30px ${product.color.shadow})` }}
-                        />
-                      </div>
-                    ) : (
-                      <ProductImage product={product} aspect="aspect-square" />
-                    )}
-                  </div>
-                  {galleryImages.length > 1 && (
-                    <div className={`grid gap-2 mt-2 ${galleryImages.length === 2 ? 'grid-cols-2' : galleryImages.length === 3 ? 'grid-cols-3' : 'grid-cols-4'}`}>
-                      {galleryImages.map((src, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => setActiveImage(i)}
-                          className="aspect-square bg-white border cursor-pointer hover:border-orange-500 transition-colors flex items-center justify-center p-2"
-                          style={{ borderColor: safeIdx === i ? '#F58220' : '#E5E5E0' }}
-                        >
-                          <img
-                            src={src}
-                            alt={`${product.name} ${i + 1}`}
-                            className="max-w-full max-h-full object-contain"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </>
-              );
-            })()}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {cats.map((c, i) => (
+          <button
+            key={c.key}
+            onClick={() => onNav(c.key)}
+            className="group relative overflow-hidden aspect-[3/4] transition fadeup"
+            style={{animationDelay: `${0.1 * i}s`}}
+          >
+            <div className="absolute inset-0 z-10" style={{background: `linear-gradient(180deg, transparent 30%, ${C.ink} 95%)`}}></div>
+            <img src={c.img} alt={c.label} className="w-full h-full object-cover transition duration-700 group-hover:scale-110" />
+            <div className="absolute inset-0 z-20 flex flex-col justify-end p-6">
+              <h3 className="f-serif text-2xl md:text-3xl mb-1" style={{color: C.pearl}}>{c.label}</h3>
+              <p className="f-mono" style={{color: C.gold}}>{counts[c.key]} perfumes</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// =========================================================================
+// PRODUCT CARD
+// =========================================================================
+function ProductCard({ product, onClick }) {
+  const variant100 = product.variants.find(v => v.size === '100ml' && v.tier === 'AA') || product.variants[product.variants.length - 1];
+  return (
+    <button onClick={onClick} className="group text-left fadeup">
+      <div
+        className="relative aspect-[3/4] mb-4 overflow-hidden product-card-img-bg"
+        style={{ '--cardp': product.color?.accent || C.brown }}
+      >
+        <img src={product.imageUrl} alt={product.name} className="absolute inset-0 w-full h-full object-contain p-6 transition duration-700 group-hover:scale-110" />
+        {product.featured && (
+          <span className="absolute top-3 left-3 f-mono text-[9px] px-2 py-1" style={{background: C.gold, color: C.brown}}>DESTACADO</span>
+        )}
+        {product.bestseller && !product.featured && (
+          <span className="absolute top-3 left-3 f-mono text-[9px] px-2 py-1 border" style={{borderColor: C.gold, color: C.gold, background: 'rgba(15,7,3,0.7)'}}>BEST SELLER</span>
+        )}
+      </div>
+      <p className="f-mono mb-1" style={{color: C.goldLight}}>{product.brand || product.inspiredBy || 'Inspirado'}</p>
+      <h3 className="f-serif text-xl md:text-2xl mb-1 leading-tight" style={{color: C.pearl}}>{product.name}</h3>
+      <p className="text-xs mb-3 f-sans" style={{color: C.ash}}>{product.family} · {product.gender}</p>
+      <p className="f-sans font-medium" style={{color: C.gold}}>desde {formatPrice(variant100.price)}</p>
+    </button>
+  );
+}
+
+// =========================================================================
+// BEST SELLERS
+// =========================================================================
+function BestSellers({ products, onSelect }) {
+  const featured = useMemo(() => {
+    const flagged = products.filter(p => p.bestseller || p.featured);
+    if (flagged.length >= 8) return flagged.slice(0, 8);
+    return [...flagged, ...products.filter(p => !flagged.includes(p))].slice(0, 8);
+  }, [products]);
+
+  return (
+    <section className="py-24 px-6" style={{background: C.inkSoft}}>
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <p className="f-mono mb-3" style={{color: C.gold}}>◆ LOS MÁS DESEADOS</p>
+          <h2 className="f-serif text-5xl md:text-6xl" style={{color: C.pearl}}>Lo que <em className="gold-text">enamora.</em></h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+          {featured.map(p => <ProductCard key={p.id} product={p} onClick={() => onSelect(p)} />)}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// =========================================================================
+// EDITORIAL STORY — Brand narrative with large image
+// =========================================================================
+function EditorialStory({ products }) {
+  const hero = products.find(p => p.id === 'bade-al-oud-sublime') || products.find(p => p.type === 'arabe') || products[0];
+  return (
+    <section className="py-24 md:py-32 px-6 relative overflow-hidden">
+      <div className="absolute inset-0 grain opacity-30"></div>
+      <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-16 items-center relative z-10">
+        <div className="relative h-[500px] md:h-[650px] order-2 md:order-1">
+          <div className="absolute -inset-12 rounded-full opacity-40 -z-10" style={{background: `radial-gradient(circle, ${C.gold} 0%, transparent 65%)`}}></div>
+          <img src={hero.imageUrl} alt={hero.name} className="w-full h-full object-contain relative z-10" />
+          <div className="absolute bottom-0 right-0 p-6 z-20">
+            <p className="f-mono mb-1" style={{color: C.gold}}>EN PORTADA</p>
+            <p className="f-serif text-2xl italic" style={{color: C.pearl}}>{hero.name}</p>
           </div>
-          
-          {/* Right: info */}
-          <div className="space-y-6">
-            <div>
-              <div className="flex items-center gap-2 f-archivo text-xs font-bold tracking-wider mb-2">
-                {product.type === 'arabe' ? (
-                  <>
-                    <span style={{ color: C.navy }}>{product.brand.toUpperCase()}</span>
-                    <span style={{ background: C.navy }} className="text-white px-2 py-0.5 text-[10px]">ÁRABE ORIGINAL</span>
-                  </>
-                ) : product.type === 'inspirado' ? (
-                  <span style={{ background: C.orange }} className="text-white px-2 py-0.5 text-[10px]">ÁMBAR PERFUMERÍA</span>
-                ) : (
-                  <span style={{ background: C.orange }} className="text-white px-2 py-0.5 text-[10px]">ÁMBAR PERFUMERÍA</span>
-                )}
-                <span style={{ color: C.muted }}>· {product.family}</span>
-              </div>
-              <h1 className="f-archivo font-black text-3xl lg:text-4xl leading-tight">
-                {product.name}
-              </h1>
-              {product.inspiredBy && (
-                <p className="mt-2 f-fraunces italic text-base lg:text-lg" style={{ color: C.muted }}>
-                  Perfil olfativo inspirado en <span className="not-italic font-medium" style={{ color: C.ink }}>{product.inspiredBy}</span>
-                </p>
-              )}
-              <div className="flex items-center gap-3 mt-3 text-sm">
-                <button onClick={() => setTab('reviews')} className="flex items-center gap-1 hover:opacity-70">
-                  {[1,2,3,4,5].map(s => <Star key={s} size={14} fill={s <= Math.round(productAvgRating) ? C.orange : 'none'} style={{ color: C.orange }} />)}
-                  <span className="f-archivo font-bold ml-1">{productAvgRating > 0 ? productAvgRating.toFixed(1) : '—'}</span>
-                  <span className="text-xs underline" style={{ color: C.muted }}>({productComments.length} {productComments.length === 1 ? 'reseña' : 'reseñas'})</span>
-                </button>
-                <span className="text-green-600 flex items-center gap-1 f-archivo font-bold text-xs"><Check size={12} /> En stock</span>
-              </div>
+        </div>
+        <div className="order-1 md:order-2">
+          <p className="f-mono mb-4" style={{color: C.gold}}>◆ LA HISTORIA</p>
+          <h2 className="f-serif text-5xl md:text-7xl mb-8 leading-[0.95]" style={{color: C.pearl}}>
+            El arte ancestral
+            <br/>
+            de la <em className="gold-text">perfumería.</em>
+          </h2>
+          <p className="text-lg leading-relaxed mb-6" style={{color: C.mute}}>
+            Importamos directamente desde Dubai. Trabajamos con las casas más reconocidas
+            de Oriente Medio — Lattafa, Armaf, Al Haramain, Orientica — y creamos esencias
+            que capturan el espíritu de los grandes perfumes occidentales.
+          </p>
+          <p className="text-lg leading-relaxed mb-10" style={{color: C.mute}}>
+            5 tamaños disponibles. 2 calidades. Envíos a toda Colombia en 24-72 horas.
+          </p>
+          <ul className="space-y-4">
+            {[
+              {k: 'Frescura garantizada', d: 'Stock rotativo importado mensualmente'},
+              {k: 'Asesoría experta', d: 'Te ayudamos a encontrar tu firma aromática'},
+              {k: 'Precios sin intermediarios', d: 'Importación directa desde origen'},
+              {k: 'Devoluciones sin preguntas', d: '15 días para cambiar de opinión'},
+            ].map(item => (
+              <li key={item.k} className="flex gap-4">
+                <span className="f-serif text-2xl" style={{color: C.gold}}>◆</span>
+                <div>
+                  <p className="f-sans font-medium" style={{color: C.pearl}}>{item.k}</p>
+                  <p className="text-sm" style={{color: C.ash}}>{item.d}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// =========================================================================
+// FRAGRANCE FAMILIES
+// =========================================================================
+function FragranceFamilies({ products, onSelectFamily }) {
+  const families = useMemo(() => {
+    const map = {};
+    products.forEach(p => {
+      const fam = p.family || 'Otros';
+      if (!map[fam]) map[fam] = 0;
+      map[fam]++;
+    });
+    return Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 14);
+  }, [products]);
+
+  return (
+    <section className="py-24 px-6 relative" style={{background: C.warm}}>
+      <div className="absolute inset-0 grain opacity-20"></div>
+      <div className="max-w-5xl mx-auto text-center relative z-10">
+        <p className="f-mono mb-3" style={{color: C.gold}}>◆ FAMILIAS OLFATIVAS</p>
+        <h2 className="f-serif text-5xl md:text-6xl mb-4" style={{color: C.pearl}}>Encuentra <em className="gold-text">tu nota.</em></h2>
+        <p className="text-lg mb-14 max-w-2xl mx-auto" style={{color: C.mute}}>
+          Cada perfume cuenta una historia distinta. Explora por familia olfativa para descubrir aromas afines a tu personalidad.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          {families.map(([family, count]) => (
+            <button
+              key={family}
+              onClick={() => onSelectFamily && onSelectFamily(family)}
+              className="px-6 py-3 border f-mono transition hover:bg-amber-900/40 hover:scale-105"
+              style={{borderColor: C.gold + '50', color: C.pearl}}
+            >
+              {family} <span style={{color: C.gold}}>· {count}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// =========================================================================
+// TESTIMONIALS
+// =========================================================================
+function Testimonials() {
+  const reviews = [
+    {n: 'Camila R.', c: 'Bogotá', t: 'El Khamrah es ESPECTACULAR. Llegó perfecto, súper rápido. Repetiré sin duda.', r: 5},
+    {n: 'Andrés M.', c: 'Medellín', t: 'Pedí el inspirado de Sauvage y honestamente no le encuentro diferencia. Increíble proyección.', r: 5},
+    {n: 'Luisa F.', c: 'Cali', t: 'La asesoría por WhatsApp es genial. Me ayudaron a escoger un Lattafa que me encantó.', r: 5},
+  ];
+  return (
+    <section className="py-24 px-6 max-w-6xl mx-auto">
+      <div className="text-center mb-14">
+        <p className="f-mono mb-3" style={{color: C.gold}}>◆ TESTIMONIOS</p>
+        <h2 className="f-serif text-5xl md:text-6xl" style={{color: C.pearl}}>Quienes <em className="gold-text">ya viven Ámbar.</em></h2>
+      </div>
+      <div className="grid md:grid-cols-3 gap-6">
+        {reviews.map((r, i) => (
+          <div key={i} className="p-8 border" style={{borderColor: C.gold + '30', background: C.inkSoft}}>
+            <div className="flex gap-1 mb-4">
+              {[...Array(r.r)].map((_, k) => <Star key={k} size={14} fill={C.gold} color={C.gold}/>)}
             </div>
-            
-            {/* Price */}
-            <div className="py-4 border-y" style={{ borderColor: '#E5E5E0' }}>
-              <div className="f-archivo font-black text-4xl" style={{ color: C.ink }}>{fmt(selectedVariant.price)}</div>
-              <div className="text-sm mt-1" style={{ color: C.muted }}>
-                Hasta 4 cuotas de {fmt(Math.ceil(selectedVariant.price / 4))} con Addi
-              </div>
+            <p className="f-serif text-xl italic mb-6 leading-relaxed" style={{color: C.pearl}}>"{r.t}"</p>
+            <p className="f-mono" style={{color: C.gold}}>{r.n}</p>
+            <p className="text-xs" style={{color: C.ash}}>{r.c}</p>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// =========================================================================
+// CTA BLOCK
+// =========================================================================
+function CtaBlock() {
+  return (
+    <section className="py-32 px-6 text-center relative overflow-hidden" style={{background: `linear-gradient(135deg, ${C.warm} 0%, ${C.brownMid} 100%)`}}>
+      <div className="absolute inset-0 grain opacity-30"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full opacity-30" style={{background: `radial-gradient(circle, ${C.gold} 0%, transparent 70%)`}}></div>
+      <div className="max-w-3xl mx-auto relative z-10">
+        <p className="f-mono mb-4" style={{color: C.gold}}>◆ HABLEMOS DIRECTO</p>
+        <h2 className="f-serif text-5xl md:text-7xl mb-8 leading-[0.95]" style={{color: C.pearl}}>
+          ¿Necesitas <em className="gold-text">consejo</em>?
+        </h2>
+        <p className="text-lg mb-12 max-w-xl mx-auto" style={{color: C.mute}}>
+          Te ayudamos a encontrar el perfume perfecto para ti o para regalar.
+          Asesoría personalizada, sin compromiso.
+        </p>
+        <a href={buildWA()} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-3 px-12 py-5 f-mono hover:scale-105 transition" style={{background: C.gold, color: C.brown}}>
+          <MessageCircle size={18}/> ESCRÍBENOS POR WHATSAPP
+        </a>
+      </div>
+    </section>
+  );
+}
+
+// =========================================================================
+// CATALOG VIEW
+// =========================================================================
+function CatalogView({ products, filter, onSelect }) {
+  const filtered = useMemo(() => {
+    if (filter === 'mujer') return products.filter(p => p.gender === 'Mujer' || p.gender === 'Femenino');
+    if (filter === 'hombre') return products.filter(p => p.gender === 'Hombre' || p.gender === 'Masculino');
+    if (filter === 'unisex') return products.filter(p => p.gender === 'Unisex');
+    if (filter === 'arabes') return products.filter(p => p.type === 'arabe');
+    if (filter === 'inspirados') return products.filter(p => p.type === 'inspirado');
+    return products;
+  }, [products, filter]);
+
+  const titles = {
+    all: { kicker: 'TODOS LOS PERFUMES', title: 'Catálogo completo' },
+    mujer: { kicker: 'FEMENINOS', title: 'Para ella' },
+    hombre: { kicker: 'MASCULINOS', title: 'Para él' },
+    unisex: { kicker: 'UNISEX', title: 'Sin género' },
+    arabes: { kicker: 'ÁRABES PREMIUM', title: 'Importación Oriente Medio' },
+    inspirados: { kicker: 'ESENCIAS INSPIRADAS', title: 'Inspirados en los grandes' },
+  };
+  const meta = titles[filter] || titles.all;
+
+  return (
+    <section className="py-16 px-6 max-w-7xl mx-auto min-h-screen">
+      <div className="mb-12 text-center">
+        <p className="f-mono mb-3" style={{color: C.gold}}>◆ {meta.kicker}</p>
+        <h1 className="f-serif text-5xl md:text-6xl mb-3" style={{color: C.pearl}}>{meta.title}</h1>
+        <p className="f-sans" style={{color: C.ash}}>{filtered.length} perfumes</p>
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-8">
+        {filtered.map(p => <ProductCard key={p.id} product={p} onClick={() => onSelect(p)} />)}
+      </div>
+    </section>
+  );
+}
+
+// =========================================================================
+// PRODUCT DETAIL MODAL
+// =========================================================================
+function ProductDetail({ product, onClose, onAddToCart }) {
+  const initialVariant = product.variants.find(v => v.size === '100ml' && v.tier === 'AA') || product.variants[0];
+  const [variant, setVariant] = useState(initialVariant);
+
+  useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, []);
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto" style={{background: 'rgba(15,7,3,0.97)', backdropFilter: 'blur(10px)'}}>
+      <div className="max-w-7xl mx-auto p-6 md:p-12">
+        <button onClick={onClose} className="mb-8 f-mono flex items-center gap-2 h-link" style={{color: C.gold}}>
+          ← VOLVER
+        </button>
+        <div className="grid md:grid-cols-2 gap-12 items-start">
+          <div className="aspect-square relative product-card-img-bg" style={{'--cardp': product.color?.accent || C.brown}}>
+            <div className="absolute -inset-8 rounded-full opacity-30 -z-10" style={{background: `radial-gradient(circle, ${C.gold} 0%, transparent 70%)`}}></div>
+            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain p-8 relative z-10" />
+          </div>
+
+          <div>
+            <p className="f-mono mb-2" style={{color: C.gold}}>{product.brand || product.inspiredBy} · {product.family}</p>
+            <h1 className="f-serif text-5xl md:text-7xl mb-3 leading-[0.95]" style={{color: C.pearl}}>{product.name}</h1>
+            <p className="f-sans text-sm mb-6" style={{color: C.ash}}>{product.gender}</p>
+
+            <p className="text-lg leading-relaxed mb-8" style={{color: C.mute}}>{product.description}</p>
+
+            <div className="mb-8 pb-8 border-b" style={{borderColor: C.gold + '25'}}>
+              <p className="f-mono text-xs mb-3" style={{color: C.gold}}>NOTAS OLFATIVAS</p>
+              <p className="f-serif text-xl italic leading-relaxed" style={{color: C.pearl}}>{product.notes}</p>
             </div>
-            
-            {/* Size selector */}
-            <div>
-              <div className="f-archivo font-bold text-sm mb-2.5">Tamaño · Presentación</div>
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
-                {Object.entries(sizeGroups).map(([size, vars]) => {
-                  const v = vars[0];
-                  const selected = selectedVariant.size === size;
+
+            <div className="mb-8">
+              <p className="f-mono text-xs mb-4" style={{color: C.gold}}>SELECCIONA TAMAÑO Y CALIDAD</p>
+              <div className="grid grid-cols-3 gap-2">
+                {product.variants.map((v, i) => {
+                  const selected = variant.size === v.size && variant.tier === v.tier;
                   return (
                     <button
-                      key={size}
-                      onClick={() => setSelectedVariant(v)}
-                      className={`border-2 p-3 text-center transition-all ${selected ? 'border-stone-900' : 'border-stone-200 hover:border-stone-400'}`}
+                      key={i}
+                      onClick={() => setVariant(v)}
+                      className="p-3 border text-center transition"
+                      style={{
+                        borderColor: selected ? C.gold : C.gold + '30',
+                        background: selected ? C.gold + '20' : 'transparent',
+                        color: C.pearl,
+                      }}
                     >
-                      <div className="f-archivo font-bold text-base">{size}</div>
-                      <div className="f-archivo text-xs mt-0.5" style={{ color: C.muted }}>{fmt(Math.min(...vars.map(x => x.price)))}</div>
+                      <p className="f-sans font-medium text-base">{v.size}</p>
+                      <p className="text-[10px] opacity-60">{v.tier}</p>
+                      <p className="f-mono mt-2" style={{color: C.gold}}>{formatPrice(v.price)}</p>
                     </button>
                   );
                 })}
               </div>
             </div>
-            
-            {/* Tier selector */}
-            {tiers.length > 1 && (
-              <div>
-                <div className="f-archivo font-bold text-sm mb-2.5">Calidad</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {tiers.map(t => {
-                    const v = product.variants.find(x => x.size === selectedVariant.size && x.tier === t);
-                    const selected = selectedVariant.tier === t;
-                    return (
-                      <button
-                        key={t}
-                        onClick={() => setSelectedVariant(v)}
-                        className={`border-2 p-3 text-left transition-all ${selected ? 'border-stone-900' : 'border-stone-200 hover:border-stone-400'}`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="f-archivo font-bold text-base">{t}</div>
-                            <div className="f-archivo text-xs" style={{ color: C.muted }}>
-                              {t === 'AAA' ? 'Premium · larga duración' : 'Calidad estándar'}
-                            </div>
-                          </div>
-                          <div className="f-archivo font-bold">{fmt(v.price)}</div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            
-            {/* Quantity + CTA */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="f-archivo font-bold text-sm">Cantidad</div>
-                <div className="flex items-center border" style={{ borderColor: '#D5D5D0' }}>
-                  <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2 hover:bg-stone-100"><Minus size={14} /></button>
-                  <span className="px-4 f-archivo font-bold">{qty}</span>
-                  <button onClick={() => setQty(qty + 1)} className="px-3 py-2 hover:bg-stone-100"><Plus size={14} /></button>
-                </div>
-              </div>
-              
-              <button
-                onClick={handleAdd}
-                disabled={added}
-                className="w-full py-4 f-archivo font-bold text-sm tracking-wide flex items-center justify-center gap-3 transition-all"
-                style={{ background: added ? '#10B981' : C.navy, color: 'white' }}
-              >
-                {added ? <><CheckCircle2 size={16} /> AÑADIDO AL CARRITO</> : <><ShoppingBag size={16} /> AÑADIR AL CARRITO · {fmt(selectedVariant.price * qty)}</>}
+
+            <div className="flex gap-3 mb-3">
+              <button onClick={() => onAddToCart(product, variant)} className="flex-1 py-4 f-mono transition hover:scale-[1.02]" style={{background: C.gold, color: C.brown}}>
+                AGREGAR AL CARRITO
               </button>
-              
-              {product.whatsappOnly ? (
-                <a
-                  href={`https://wa.me/573173641851?text=${encodeURIComponent(`Hola Ámbar Perfumería, quiero pedir: ${product.name} · ${selectedVariant.size} · ${selectedVariant.tier} · Cantidad: ${qty} · Total: ${fmt(selectedVariant.price * qty)}`)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-4 f-archivo font-bold text-sm tracking-wide flex items-center justify-center gap-2 text-white transition-colors hover:opacity-90"
-                  style={{ background: '#25D366' }}
-                >
-                  <MessageCircle size={16} /> PEDIR POR WHATSAPP · {fmt(selectedVariant.price * qty)}
-                </a>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <a
-                    href={getMercadoLibreUrl(product)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-4 f-archivo font-bold text-sm tracking-wide flex items-center justify-center gap-2 transition-colors hover:opacity-90"
-                    style={{ background: '#FFE600', color: '#2D3277' }}
-                  >
-                    <ExternalLink size={14} /> COMPRAR EN MERCADO LIBRE
-                  </a>
-                  <a
-                    href={getShopifyUrl(product)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-4 f-archivo font-bold text-sm tracking-wide flex items-center justify-center gap-2 text-white transition-colors hover:opacity-90"
-                    style={{ background: '#5E8E3E' }}
-                  >
-                    <ExternalLink size={14} /> COMPRAR EN SHOPIFY
-                  </a>
-                </div>
-              )}
+              <a href={buildWA(product)} target="_blank" rel="noopener noreferrer" className="px-5 py-4 f-mono border flex items-center gap-2 transition hover:bg-amber-900/30" style={{borderColor: C.gold, color: C.gold}}>
+                <MessageCircle size={16}/>
+              </a>
             </div>
-            
-            <div className="grid grid-cols-2 gap-3 pt-2">
-              <div className="flex items-start gap-2 text-xs" style={{ color: C.muted }}>
-                <Truck size={16} className="mt-0.5 flex-shrink-0" style={{ color: C.orange }} />
-                <div><strong className="f-archivo">Envío 24-72h</strong><br />Gratis desde $150.000</div>
-              </div>
-              <div className="flex items-start gap-2 text-xs" style={{ color: C.muted }}>
-                <Shield size={16} className="mt-0.5 flex-shrink-0" style={{ color: C.orange }} />
-                <div><strong className="f-archivo">Garantía</strong><br />30 días devolución</div>
-              </div>
-            </div>
+            <a href={getShopifyUrl(product)} target="_blank" rel="noopener noreferrer" className="block text-center f-mono py-3 h-link" style={{color: C.gold}}>
+              VER EN NUESTRA TIENDA SHOPIFY →
+            </a>
           </div>
         </div>
-      </section>
-      
-      {/* Tabs */}
-      <section className="border-t" style={{ borderColor: '#E5E5E0', background: C.cream }}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-12">
-          <div className="flex gap-6 border-b mb-8" style={{ borderColor: '#E5E5E0' }}>
-            {[
-              { id: 'description', label: 'Descripción' },
-              { id: 'notes', label: 'Notas olfativas' },
-              { id: 'shipping', label: 'Envío y devoluciones' },
-              { id: 'reviews', label: 'Reseñas' },
-            ].map(t => (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
-                className={`pb-4 f-archivo font-bold text-sm border-b-2 transition-colors ${tab === t.id ? '' : 'border-transparent'}`}
-                style={{ borderColor: tab === t.id ? C.orange : 'transparent', color: tab === t.id ? C.ink : C.muted }}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-          
-          {tab === 'description' && (
-            <div className="max-w-3xl space-y-4 f-dm leading-relaxed" style={{ color: '#3A3A3A' }}>
-              <p>{product.description}</p>
-              {product.type === 'inspirado' && (
-                <p className="text-sm pt-4 border-t" style={{ color: C.muted, borderColor: '#E5E5E0' }}>
-                  <strong>Nota legal:</strong> Producto inspirado en una fragancia comercial. No es el perfume original ni está asociado con la marca referida. Su composición olfativa busca evocar familia y estilo del original.
-                </p>
-              )}
-            </div>
-          )}
-          
-          {tab === 'notes' && (
-            <div className="max-w-3xl space-y-6">
-              <div>
-                <div className="f-archivo font-bold text-sm mb-3" style={{ color: C.orange }}>NOTAS</div>
-                <p className="f-archivo text-xl">{product.notes}</p>
-              </div>
-              <div className="grid sm:grid-cols-3 gap-4">
-                <div className="bg-white p-5 border" style={{ borderColor: '#E5E5E0' }}>
-                  <div className="f-archivo font-bold text-xs tracking-wider mb-1" style={{ color: C.orange }}>FAMILIA</div>
-                  <div className="f-archivo font-bold">{product.family}</div>
-                </div>
-                <div className="bg-white p-5 border" style={{ borderColor: '#E5E5E0' }}>
-                  <div className="f-archivo font-bold text-xs tracking-wider mb-1" style={{ color: C.orange }}>GÉNERO</div>
-                  <div className="f-archivo font-bold">{product.gender}</div>
-                </div>
-                <div className="bg-white p-5 border" style={{ borderColor: '#E5E5E0' }}>
-                  <div className="f-archivo font-bold text-xs tracking-wider mb-1" style={{ color: C.orange }}>TIPO</div>
-                  <div className="f-archivo font-bold">Eau de Parfum</div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {tab === 'shipping' && (
-            <div className="max-w-3xl space-y-4 f-dm leading-relaxed" style={{ color: '#3A3A3A' }}>
-              <p><strong className="f-archivo">Envíos:</strong> Despachamos a toda Colombia vía Servientrega y Coordinadora. Bogotá 24h, ciudades principales 48-72h, resto del país 3-5 días hábiles. Envío gratuito para compras desde $150.000.</p>
-              <p><strong className="f-archivo">Devoluciones:</strong> Tienes 30 días desde la entrega para solicitar cambio o devolución, siempre que el producto esté sellado y sin abrir. Defectos de fábrica los cubrimos al 100%.</p>
-              <p><strong className="f-archivo">Pago seguro:</strong> Aceptamos Nequi, Bancolombia, transferencia, pago contraentrega y cuotas con Addi. Confirmamos cada pedido por WhatsApp antes de enviar.</p>
-            </div>
-          )}
-
-          {tab === 'reviews' && <ReviewsBlock productId={product.id} />}
-        </div>
-      </section>
-      
-      {/* Related */}
-      <section className="py-12">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          <h2 className="f-archivo font-black text-2xl lg:text-3xl mb-6">También te puede gustar</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
-            {related.map(p => <ProductCard key={p.id} product={p} onClick={() => onSelectProduct(p.id)} />)}
-          </div>
-        </div>
-      </section>
-    </main>
+      </div>
+    </div>
   );
-};
+}
 
-
-
-// ============================================================
-// SEARCH RESULTS VIEW
-// ============================================================
-const SearchResults = ({ query, onSelectProduct, onNavigate }) => {
-  const q = (query || '').toLowerCase().trim();
-  const items = q ? PRODUCTS.filter(p => {
-    const haystack = [p.name, p.brand, p.family, p.gender, p.inspiredBy || '', p.description || '', p.notes || '']
-      .join(' ').toLowerCase();
-    return q.split(/\s+/).every(token => haystack.includes(token));
-  }) : [];
-
-  return (
-    <main className="bg-white min-h-screen f-dm">
-      <section className="py-10 lg:py-12 border-b" style={{ background: C.cream, borderColor: '#E5E5E0' }}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          <div className="f-mono mb-3" style={{ color: C.orange }}>RESULTADOS DE BÚSQUEDA</div>
-          <h1 className="f-archivo font-black text-3xl lg:text-4xl mb-3">
-            {q ? <>Buscaste: <span style={{ color: C.orange }}>"{query}"</span></> : 'Escribe algo para buscar'}
-          </h1>
-          <p style={{ color: C.muted }}>
-            {items.length} {items.length === 1 ? 'resultado' : 'resultados'} encontrados
-          </p>
-        </div>
-      </section>
-
-      <section className="py-10">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          {items.length === 0 ? (
-            <div className="text-center py-16">
-              <Search size={48} className="mx-auto mb-4" strokeWidth={1.5} style={{ color: C.muted }} />
-              <p className="f-archivo font-bold text-xl mb-2">Sin resultados</p>
-              <p className="text-sm mb-6" style={{ color: C.muted }}>
-                Intenta con otra palabra. Busca por nombre, marca, género o familia olfativa.
-              </p>
-              <button
-                onClick={() => onNavigate('catalog')}
-                className="text-white px-6 py-3 f-archivo font-bold text-sm"
-                style={{ background: C.navy }}
-              >
-                VER TODO EL CATÁLOGO
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
-              {items.map(p => <ProductCard key={p.id} product={p} onClick={() => onSelectProduct(p.id)} />)}
-            </div>
-          )}
-        </div>
-      </section>
-    </main>
-  );
-};
-
-// ============================================================
-// WISHLIST VIEW
-// ============================================================
-const Wishlist = ({ onSelectProduct, onNavigate }) => {
-  const ids = useWishlist();
-  const items = PRODUCTS.filter(p => ids.includes(p.id));
-
-  return (
-    <main className="bg-white min-h-screen f-dm">
-      <section className="py-10 lg:py-12 border-b" style={{ background: C.cream, borderColor: '#E5E5E0' }}>
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          <div className="f-mono mb-3" style={{ color: C.orange }}>TUS FAVORITOS</div>
-          <h1 className="f-archivo font-black text-4xl lg:text-5xl mb-3">Lista de deseos</h1>
-          <p style={{ color: C.muted }}>
-            {items.length === 0
-              ? 'Aún no has guardado productos. Toca el ❤ para agregar a esta lista.'
-              : `${items.length} ${items.length === 1 ? 'producto guardado' : 'productos guardados'}`}
-          </p>
-        </div>
-      </section>
-
-      <section className="py-10">
-        <div className="max-w-[1400px] mx-auto px-4 lg:px-8">
-          {items.length === 0 ? (
-            <div className="text-center py-16">
-              <Heart size={48} className="mx-auto mb-4" strokeWidth={1.5} style={{ color: C.orange }} />
-              <p className="f-archivo font-bold text-xl mb-2">Tu lista está vacía</p>
-              <p className="text-sm mb-6" style={{ color: C.muted }}>Toca el corazón en cualquier producto para guardarlo aquí.</p>
-              <button
-                onClick={() => onNavigate('catalog')}
-                className="text-white px-6 py-3 f-archivo font-bold text-sm"
-                style={{ background: C.navy }}
-              >
-                EXPLORAR CATÁLOGO
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-5">
-              {items.map(p => <ProductCard key={p.id} product={p} onClick={() => onSelectProduct(p.id)} />)}
-            </div>
-          )}
-        </div>
-      </section>
-    </main>
-  );
-};
-
-// ============================================================
+// =========================================================================
 // CART DRAWER
-// ============================================================
-const CartDrawer = ({ open, onClose, cart, onUpdateQty, onRemove, onWhatsApp }) => {
-  const subtotal = cart.reduce((s, i) => s + i.variant.price * i.qty, 0);
-  const shipping = subtotal >= 150000 || subtotal === 0 ? 0 : 12000;
-  const total = subtotal + shipping;
-  
+// =========================================================================
+function CartDrawer({ open, onClose, cart, onRemove, onCheckout }) {
+  if (!open) return null;
+  const total = cart.reduce((sum, item) => sum + item.variant.price * item.qty, 0);
   return (
-    <>
-      {open && <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose} />}
-      <div className={`fixed top-0 right-0 h-full w-full sm:w-[440px] bg-white z-50 transform transition-transform duration-500 ${open ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
-        <div className="flex items-center justify-between p-5 border-b" style={{ borderColor: '#E5E5E0' }}>
-          <h2 className="f-archivo font-black text-xl">Tu pedido ({cart.length})</h2>
-          <button onClick={onClose}><X size={20} /></button>
+    <div className="fixed inset-0 z-50 flex justify-end" onClick={onClose}>
+      <div className="absolute inset-0" style={{background: 'rgba(15,7,3,0.8)', backdropFilter: 'blur(4px)'}}/>
+      <div className="relative w-full max-w-md p-8 overflow-y-auto" style={{background: C.inkSoft, borderLeft: `1px solid ${C.gold}30`}} onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="f-serif text-3xl" style={{color: C.pearl}}>Tu selección</h2>
+          <button onClick={onClose}><X size={22} color={C.gold}/></button>
         </div>
-        
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {cart.length === 0 ? (
-            <div className="text-center py-20">
-              <ShoppingBag size={36} className="mx-auto text-stone-300 mb-4" strokeWidth={1} />
-              <p className="f-archivo font-bold mb-2">Tu carrito está vacío</p>
-              <p className="text-sm" style={{ color: C.muted }}>Encuentra tu próxima fragancia favorita.</p>
-            </div>
-          ) : cart.map((item, i) => (
-            <div key={`${item.product.id}-${item.variant.size}-${item.variant.tier}-${i}`} className="flex gap-3 pb-5 border-b" style={{ borderColor: '#E5E5E0' }}>
-              <div className="w-20 h-24 bg-stone-50 flex-shrink-0">
-                <ProductImage product={item.product} aspect="aspect-[5/6]" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h3 className="f-archivo font-bold text-sm leading-tight">{item.product.name}</h3>
-                {item.product.inspiredBy && <div className="f-fraunces italic text-xs" style={{ color: C.muted }}>{item.product.inspiredBy}</div>}
-                <div className="f-archivo text-xs mt-1" style={{ color: C.muted }}>{item.variant.size} · {item.variant.tier}</div>
-                <div className="flex items-center justify-between mt-2">
-                  <div className="flex items-center border" style={{ borderColor: '#D5D5D0' }}>
-                    <button onClick={() => onUpdateQty(i, item.qty - 1)} className="px-2 py-1 hover:bg-stone-100"><Minus size={12} /></button>
-                    <span className="px-3 f-archivo font-bold text-sm">{item.qty}</span>
-                    <button onClick={() => onUpdateQty(i, item.qty + 1)} className="px-2 py-1 hover:bg-stone-100"><Plus size={12} /></button>
-                  </div>
-                  <span className="f-archivo font-bold text-sm">{fmt(item.variant.price * item.qty)}</span>
-                </div>
-              </div>
-              <button onClick={() => onRemove(i)} className="text-stone-400 hover:text-red-500 flex-shrink-0">
-                <Trash2 size={14} />
-              </button>
-            </div>
-          ))}
-        </div>
-        
-        {cart.length > 0 && (
-          <div className="border-t p-5 space-y-3" style={{ borderColor: '#E5E5E0', background: C.cream }}>
-            <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between"><span style={{ color: C.muted }}>Subtotal</span><span className="f-archivo font-bold">{fmt(subtotal)}</span></div>
-              <div className="flex justify-between"><span style={{ color: C.muted }}>Envío {shipping === 0 && '(gratis 🎉)'}</span><span className="f-archivo font-bold">{shipping === 0 ? '—' : fmt(shipping)}</span></div>
-              <div className="flex justify-between pt-2 border-t" style={{ borderColor: '#E5E5E0' }}>
-                <span className="f-archivo font-black text-lg">Total</span>
-                <span className="f-archivo font-black text-lg">{fmt(total)}</span>
-              </div>
-            </div>
-            <button onClick={onWhatsApp} className="w-full text-white py-3.5 f-archivo font-bold text-sm flex items-center justify-center gap-3 transition-colors hover:opacity-90" style={{ background: '#25D366' }}>
-              <MessageCircle size={16} /> FINALIZAR PEDIDO POR WHATSAPP · {fmt(total)}
-            </button>
-            <p className="text-[11px] f-dm text-center" style={{ color: C.muted }}>
-              Te llevamos a WhatsApp con tu pedido listo. Allí confirmamos disponibilidad, dirección y método de pago (Nequi, transferencia, contraentrega).
-            </p>
+        {cart.length === 0 ? (
+          <div className="text-center py-16">
+            <p style={{color: C.ash}}>Aún no agregas perfumes.</p>
           </div>
+        ) : (
+          <>
+            <div className="space-y-5 mb-8">
+              {cart.map((item, i) => (
+                <div key={i} className="flex gap-4 pb-5 border-b" style={{borderColor: C.gold + '20'}}>
+                  <div className="w-20 h-20 flex-shrink-0 product-card-img-bg" style={{'--cardp': item.product.color?.accent || C.brown}}>
+                    <img src={item.product.imageUrl} alt="" className="w-full h-full object-contain p-2" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="f-mono text-[10px]" style={{color: C.goldLight}}>{item.product.brand || item.product.inspiredBy}</p>
+                    <p className="f-serif text-lg leading-tight" style={{color: C.pearl}}>{item.product.name}</p>
+                    <p className="text-xs my-1" style={{color: C.ash}}>{item.variant.size} · {item.variant.tier}</p>
+                    <p className="f-sans font-medium" style={{color: C.gold}}>{formatPrice(item.variant.price * item.qty)}</p>
+                  </div>
+                  <button onClick={() => onRemove(i)} className="self-start" style={{color: C.ash}}>
+                    <X size={18}/>
+                  </button>
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-between items-baseline mb-6 pb-6 border-t pt-6" style={{borderColor: C.gold + '30'}}>
+              <span className="f-mono" style={{color: C.pearl}}>TOTAL</span>
+              <span className="f-serif text-3xl" style={{color: C.gold}}>{formatPrice(total)}</span>
+            </div>
+            <button onClick={onCheckout} className="w-full py-4 f-mono transition hover:scale-[1.02] flex items-center justify-center gap-2" style={{background: C.gold, color: C.brown}}>
+              <MessageCircle size={16}/> CHECKOUT POR WHATSAPP
+            </button>
+            <p className="text-center mt-4 text-xs" style={{color: C.ash}}>Coordinamos pago contra entrega o por Nequi</p>
+          </>
         )}
       </div>
-    </>
+    </div>
   );
-};
+}
 
-// ============================================================
-// TRACK ORDER
-// ============================================================
-// ============================================================
-// MAISON / NOSOTROS
-// ============================================================
-const Maison = () => (
-  <main className="bg-white f-dm">
-    <section className="py-16 lg:py-24" style={{ background: C.navy }}>
-      <div className="max-w-4xl mx-auto px-4 lg:px-8 text-white">
-        <div className="f-mono mb-4" style={{ color: C.orange }}>NUESTRA HISTORIA</div>
-        <h1 className="f-archivo font-black text-5xl lg:text-7xl leading-[0.95] mb-6">Ámbar Perfumería S.A.S.</h1>
-        <p className="text-xl lg:text-2xl text-white/80 max-w-2xl">Importadora de productos seleccionados — tendencias, perfumería y categorías virales — con calidad garantizada y envíos rápidos a toda Colombia. Trabajamos directo con los fabricantes para ofrecerte la mejor relación calidad-precio.</p>
-      </div>
-    </section>
-    
-    <section className="py-16 lg:py-24">
-      <div className="max-w-4xl mx-auto px-4 lg:px-8 grid md:grid-cols-3 gap-10 text-center">
-        {[
-          { num: '+5.000', label: 'Clientes satisfechos en Colombia' },
-          { num: '24-72h', label: 'Tiempo promedio de entrega' },
-          { num: '100%', label: 'Productos con calidad garantizada' },
-        ].map((s, i) => (
-          <div key={i}>
-            <div className="f-archivo font-black text-6xl mb-2" style={{ color: C.orange }}>{s.num}</div>
-            <p style={{ color: C.muted }}>{s.label}</p>
-          </div>
-        ))}
-      </div>
-    </section>
-    
-    <section className="py-16 lg:py-20" style={{ background: C.cream }}>
-      <div className="max-w-3xl mx-auto px-4 lg:px-8 space-y-6">
-        <h2 className="f-archivo font-black text-3xl lg:text-4xl">¿Por qué Ámbar Perfumería?</h2>
-        <div className="space-y-5">
-          {[
-            { title: 'Importación directa', text: 'Trabajamos directo con los fabricantes para evitar intermediarios y trasladarte el mejor precio. Curamos cada referencia antes de incluirla en catálogo.' },
-            { title: 'Productos seleccionados', text: 'Solo importamos productos con demanda comprobada y excelente relación calidad-precio. Tendencias, virales y categorías ganadoras.' },
-            { title: 'Atención humana', text: 'Hablas por WhatsApp con personas reales, no con un bot. Asesoría antes de comprar, sin obligación.' },
-            { title: 'Garantía total', text: '30 días para devolver o cambiar tu producto si no es lo que esperabas. Defectos de fábrica cubiertos al 100%.' },
-          ].map((b, i) => (
-            <div key={i} className="flex gap-4">
-              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 f-archivo font-black text-white" style={{ background: C.orange }}>
-                {i + 1}
-              </div>
-              <div>
-                <div className="f-archivo font-bold text-lg mb-1">{b.title}</div>
-                <p style={{ color: C.muted }}>{b.text}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  </main>
-);
-
-// ============================================================
+// =========================================================================
 // FOOTER
-// ============================================================
-const Footer = ({ onNavigate }) => (
-  <footer style={{ background: C.navyDark, color: '#A8B5CC' }}>
-    <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-14">
-      <div className="grid md:grid-cols-4 gap-8 mb-10">
-        <div className="md:col-span-1 space-y-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: C.orange }}>
-              <Globe size={18} className="text-white" strokeWidth={2.5} />
-            </div>
-            <div>
-              <div className="f-archivo font-black text-xl text-white leading-none">Ámbar Perfumería</div>
-            </div>
+// =========================================================================
+function Footer({ onNav }) {
+  return (
+    <footer className="pt-24 pb-10 px-6 relative" style={{background: C.ink, borderTop: `1px solid ${C.gold}25`}}>
+      <div className="absolute inset-0 grain opacity-20"></div>
+      <div className="max-w-7xl mx-auto grid md:grid-cols-4 gap-12 mb-16 relative z-10">
+        <div className="md:col-span-1">
+          <div className="flex items-baseline gap-2 mb-4">
+            <span className="f-serif text-3xl italic" style={{color: C.pearl}}>Á</span>
+            <span className="f-display text-2xl gold-text">MBAR</span>
           </div>
-          <p className="text-sm">Importadora de productos seleccionados, perfumería y tendencias con calidad garantizada.</p>
+          <p className="text-sm leading-relaxed mb-6" style={{color: C.ash}}>
+            Perfumería árabe e inspirada premium.
+            Importación directa Colombia.
+          </p>
           <div className="flex gap-3">
-            <a href="https://www.instagram.com/nova.import_sas/" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-              <Instagram size={20} className="hover:text-white cursor-pointer" />
+            <a href={buildWA()} target="_blank" rel="noopener noreferrer" className="p-2 border" style={{borderColor: C.gold + '40', color: C.gold}}>
+              <MessageCircle size={16}/>
             </a>
-            <a href="https://www.facebook.com/profile.php?id=61551260687550" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-              <Facebook size={20} className="hover:text-white cursor-pointer" />
-            </a>
-            <a href="https://wa.me/573173641851" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp">
-              <MessageCircle size={20} className="hover:text-white cursor-pointer" />
+            <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" className="p-2 border" style={{borderColor: C.gold + '40', color: C.gold}}>
+              <Instagram size={16}/>
             </a>
           </div>
         </div>
-        
         <div>
-          <div className="f-archivo font-bold text-white text-sm mb-3 tracking-wider">CATÁLOGO</div>
-          <ul className="space-y-2 text-sm">
-            <li><button onClick={() => onNavigate('catalog-bebe')} className="hover:text-white">Bebé</button></li>
-            <li><button onClick={() => onNavigate('catalog-mascotas')} className="hover:text-white">Mascotas</button></li>
-            <li><button onClick={() => onNavigate('catalog-hogar')} className="hover:text-white">Hogar</button></li>
-            <li><button onClick={() => onNavigate('catalog-perfumeria')} className="hover:text-white">Perfumería (todos)</button></li>
-            <li><button onClick={() => onNavigate('catalog-arabe')} className="hover:text-white">Perfumería árabe</button></li>
-            <li><button onClick={() => onNavigate('catalog-inspirado')} className="hover:text-white">Esencias inspiradas</button></li>
-            <li><button onClick={() => onNavigate('catalog-bestsellers')} className="hover:text-white">Más vendidos</button></li>
+          <h4 className="f-mono mb-5" style={{color: C.gold}}>CATEGORÍAS</h4>
+          <ul className="space-y-3 text-sm" style={{color: C.pearl}}>
+            <li><button onClick={() => onNav('mujer')} className="h-link">Femeninos</button></li>
+            <li><button onClick={() => onNav('hombre')} className="h-link">Masculinos</button></li>
+            <li><button onClick={() => onNav('unisex')} className="h-link">Unisex</button></li>
+            <li><button onClick={() => onNav('arabes')} className="h-link">Árabes premium</button></li>
+            <li><button onClick={() => onNav('inspirados')} className="h-link">Esencias inspiradas</button></li>
           </ul>
         </div>
-        
         <div>
-          <div className="f-archivo font-bold text-white text-sm mb-3 tracking-wider">AYUDA</div>
-          <ul className="space-y-2 text-sm">
-            <li>
-              <a href={`https://wa.me/573173641851?text=${encodeURIComponent('Hola Ámbar Perfumería, quiero hacer seguimiento de mi pedido.')}`} target="_blank" rel="noopener noreferrer" className="hover:text-white">
-                Seguimiento de pedido
-              </a>
-            </li>
-            <li>
-              <a href={`https://wa.me/573173641851?text=${encodeURIComponent('Hola, necesito información sobre envíos y entregas.')}`} target="_blank" rel="noopener noreferrer" className="hover:text-white">
-                Envíos y entregas
-              </a>
-            </li>
-            <li>
-              <a href={`https://wa.me/573173641851?text=${encodeURIComponent('Hola, quiero hacer un cambio o devolución.')}`} target="_blank" rel="noopener noreferrer" className="hover:text-white">
-                Cambios y devoluciones
-              </a>
-            </li>
-            <li>
-              <a href={`https://wa.me/573173641851?text=${encodeURIComponent('Hola Ámbar Perfumería, tengo una pregunta.')}`} target="_blank" rel="noopener noreferrer" className="hover:text-white">
-                Atención al cliente
-              </a>
-            </li>
-            <li className="flex items-center gap-1.5">
-              <MessageCircle size={12} />
-              <a href="https://wa.me/573173641851" target="_blank" rel="noopener noreferrer" className="hover:text-white">+57 317 364 1851</a>
-            </li>
-            <li className="flex items-center gap-1.5">
-              <Mail size={12} />
-              <a href="mailto:novaimportaciones190@gmail.com" className="hover:text-white">novaimportaciones190@gmail.com</a>
-            </li>
-          </ul>
-        </div>
-        
-        <div>
-          <div className="f-archivo font-bold text-white text-sm mb-3 tracking-wider">LEGAL</div>
-          <ul className="space-y-2 text-sm">
+          <h4 className="f-mono mb-5" style={{color: C.gold}}>AYUDA</h4>
+          <ul className="space-y-3 text-sm" style={{color: C.pearl}}>
+            <li>Envíos 24-72h</li>
+            <li>Garantía autenticidad</li>
+            <li>Pago contra entrega</li>
+            <li>Cambios y devoluciones</li>
             <li>Política de privacidad</li>
-            <li>Tratamiento de datos · Ley 1581</li>
-            <li>Términos y condiciones</li>
-            <li>Política de cookies</li>
-            <li>Aviso de marcas</li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="f-mono mb-5" style={{color: C.gold}}>CONTACTO</h4>
+          <ul className="space-y-3 text-sm" style={{color: C.pearl}}>
+            <li className="flex items-center gap-2"><Phone size={14} color={C.gold}/> 317 364 1851</li>
+            <li className="flex items-center gap-2"><Mail size={14} color={C.gold}/> hola@ambarperfumeria.co</li>
+            <li className="flex items-center gap-2"><MapPin size={14} color={C.gold}/> Bogotá, Colombia</li>
           </ul>
         </div>
       </div>
-      
-      <div className="pt-6 border-t flex flex-col md:flex-row gap-4 justify-between text-xs" style={{ borderColor: '#1A3055' }}>
-        <div>© 2026 Ámbar Perfumería S.A.S. · NIT 52.960.928-7 · Bogotá D.C., Colombia</div>
-        <div className="flex gap-6 flex-wrap items-center f-archivo font-medium">
-          <span>NEQUI</span><span>BANCOLOMBIA</span><span>ADDI</span><span>CONTRAENTREGA</span><span>SERVIENTREGA</span>
-        </div>
+      <div className="text-center pt-8 border-t flex flex-wrap justify-between gap-3" style={{borderColor: C.gold + '20', color: C.ash}}>
+        <p className="f-mono">© 2026 ÁMBAR PERFUMERÍA · TODOS LOS DERECHOS RESERVADOS</p>
+        <p className="f-mono">DISEÑO · IMPORTACIÓN · COLOMBIA</p>
       </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+}
 
-// ============================================================
-// COOKIE BANNER
-// ============================================================
-const CookieBanner = ({ onClose }) => (
-  <div className="fixed bottom-0 left-0 right-0 z-30 bg-white border-t shadow-lg" style={{ borderColor: '#E5E5E0' }}>
-    <div className="max-w-[1400px] mx-auto px-4 lg:px-8 py-4 flex flex-col lg:flex-row items-start lg:items-center gap-3 justify-between">
-      <p className="text-sm" style={{ color: '#3A3A3A' }}>
-        Usamos cookies para mejorar tu experiencia. Al continuar aceptas el tratamiento de datos según la <strong>Ley 1581 de 2012</strong>.
-      </p>
-      <div className="flex gap-2 flex-shrink-0">
-        <button onClick={onClose} className="border px-4 py-2 f-archivo font-bold text-xs" style={{ borderColor: '#D5D5D0' }}>RECHAZAR</button>
-        <button onClick={onClose} className="text-white px-4 py-2 f-archivo font-bold text-xs" style={{ background: C.navy }}>ACEPTAR</button>
-      </div>
-    </div>
-  </div>
-);
-
-// ============================================================
-// APP
-// ============================================================
+// =========================================================================
+// MAIN APP
+// =========================================================================
 export default function App() {
-  // Lee view inicial desde la URL (ej. /catalog-mujer → 'catalog-mujer'). Default: 'home'.
-  const readViewFromPath = () => {
-    if (typeof window === 'undefined') return 'home';
-    const p = window.location.pathname.replace(/^\//,'').replace(/\/$/, '');
-    return p || 'home';
-  };
-  const [view, setView] = useState(readViewFromPath);
-  const [selectedId, setSelectedId] = useState(null);
+  const [view, setView] = useState('home');
+  const [filter, setFilter] = useState('all');
+  const [selected, setSelected] = useState(null);
   const [cart, setCart] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
-  const [cookies, setCookies] = useState(() => {
-    try {
-      return typeof window !== 'undefined' && !window.localStorage.getItem('novaimport_cookies_dismissed');
-    } catch (e) { return true; }
-  });
-  const dismissCookies = () => {
-    try { window.localStorage.setItem('novaimport_cookies_dismissed', '1'); } catch (e) {}
-    setCookies(false);
-  };
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  useEffect(() => {
-    try {
-      const s = window.localStorage.getItem('cart_nova');
-      if (s) setCart(JSON.parse(s));
-    } catch (e) {}
-  }, []);
 
-  useEffect(() => {
-    try { window.localStorage.setItem('cart_nova', JSON.stringify(cart)); } catch (e) {}
-  }, [cart]);
-  // Escucha back/forward del browser para sincronizar el view con la URL
-  useEffect(() => {
-    const onPop = () => setView(readViewFromPath());
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, []);
-  
-  const navigate = (v) => {
-    if (typeof v === 'object' && v !== null && v.view === 'search') {
-      setSearchQuery(v.q || '');
-      setView('search');
-      setSelectedId(null);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
+  const nav = (v, f) => {
     setView(v);
-    if (v !== 'product') setSelectedId(null);
-    if (v !== 'search') setSearchQuery('');
-    // Actualiza la URL del browser para que tenga URLs compartibles
-    try {
-      const path = v === 'home' ? '/' : '/' + v;
-      if (window.location.pathname !== path) {
-        window.history.pushState({ view: v }, '', path);
-      }
-    } catch (e) {}
+    if (f) setFilter(f);
+    setSelected(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-  
-  const selectProduct = (id) => {
-    setSelectedId(id);
-    setView('product');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const addToCart = (product, variant) => {
+    setCart(c => [...c, { product, variant, qty: 1 }]);
+    setCartOpen(true);
+    setSelected(null);
   };
-  
-  const addToCart = (product, variant, qty) => {
-    setCart(prev => {
-      const idx = prev.findIndex(i => i.product.id === product.id && i.variant.size === variant.size && i.variant.tier === variant.tier);
-      if (idx >= 0) {
-        const next = [...prev];
-        next[idx] = { ...next[idx], qty: next[idx].qty + qty };
-        return next;
-      }
-      return [...prev, { product, variant, qty }];
-    });
-  };
-  
-  const updateQty = (i, qty) => {
-    if (qty <= 0) { setCart(cart.filter((_, j) => j !== i)); return; }
-    setCart(cart.map((it, j) => j === i ? { ...it, qty } : it));
-  };
-  
-  const removeFromCart = (i) => setCart(cart.filter((_, j) => j !== i));
-  
-const WA_NUMBER = '573173641851';
-  
-  const openWhatsApp = (msg) => {
-    const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
-  };
-  
-  const cartWhatsApp = () => {
-    const lines = cart.map(it => `• ${it.product.name}${it.product.inspiredBy ? ' ' + it.product.inspiredBy : ''} · ${it.variant.size} ${it.variant.tier} × ${it.qty}`).join('\n');
+
+  const removeFromCart = (i) => setCart(c => c.filter((_, j) => j !== i));
+
+  const checkoutWA = () => {
+    const lines = cart.map(i => `• ${i.product.name} (${i.variant.size} ${i.variant.tier}) — ${formatPrice(i.variant.price * i.qty)}`).join('\n');
     const total = cart.reduce((s, i) => s + i.variant.price * i.qty, 0);
-    const msg = `Hola Ámbar Perfumería 👋\nQuiero hacer este pedido:\n\n${lines}\n\nTotal: ${fmt(total)}\n\n¿Me confirman disponibilidad y método de pago? Gracias.`;
-    openWhatsApp(msg);
+    const text = `Hola Ámbar Perfumería, quiero confirmar este pedido:\n\n${lines}\n\nTotal: ${formatPrice(total)}\n\n¿Cómo coordinamos el envío?`;
+    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank');
   };
-  
-  const productWhatsApp = (msg) => {
-    openWhatsApp(msg);
-  };
-  
-  const product = selectedId ? PRODUCTS.find(p => p.id === selectedId) : null;
-  const cartCount = cart.reduce((s, i) => s + i.qty, 0);
-  
-  const renderView = () => {
-    if (view === 'catalog') return <Catalog onSelectProduct={selectProduct} />;
-    if (view === 'catalog-bebe') return <Catalog initialFilter={{ type: 'bebe' }} title="Productos para bebé" onSelectProduct={selectProduct} />;
-    if (view === 'catalog-mascotas') return <Catalog initialFilter={{ type: 'mascotas' }} title="Productos para mascotas" onSelectProduct={selectProduct} />;
-    if (view === 'catalog-hogar') return <Catalog initialFilter={{ type: 'hogar' }} title="Productos para el hogar" onSelectProduct={selectProduct} />;
-    if (view === 'catalog-perfumeria') return <Catalog initialFilter={{ typeIn: ['arabe', 'inspirado'] }} title="Perfumería · Árabes e Inspirados" onSelectProduct={selectProduct} />;
-    if (view === 'catalog-hombre') return <Catalog initialFilter={{ gender: 'Hombre' }} title="Fragancias para él" onSelectProduct={selectProduct} />;
-    if (view === 'catalog-mujer') return <Catalog initialFilter={{ gender: 'Mujer' }} title="Fragancias para ella" onSelectProduct={selectProduct} />;
-    if (view === 'catalog-arabe') return <Catalog initialFilter={{ type: 'arabe' }} title="Marcas árabes 100% originales" onSelectProduct={selectProduct} />;
-    if (view === 'catalog-inspirado') return <Catalog initialFilter={{ type: 'inspirado' }} title="Esencias inspiradas premium" onSelectProduct={selectProduct} />;
-    if (view === 'catalog-bestsellers') return <Catalog initialFilter={{ bestseller: true }} title="Los más vendidos" onSelectProduct={selectProduct} />;
-    if (view === 'product' && product) return <ProductDetail product={product} onBack={() => navigate('catalog')} onAddToCart={addToCart} onWhatsAppBuy={productWhatsApp} onSelectProduct={selectProduct} />;
-    if (view === 'wishlist') return <Wishlist onSelectProduct={selectProduct} onNavigate={navigate} />;
-    if (view === 'search') return <SearchResults query={searchQuery} onSelectProduct={selectProduct} onNavigate={navigate} />;
-    if (view === 'maison') return <Maison />;
-    return <Home onNavigate={navigate} onSelectProduct={selectProduct} />;
-  };
-  
+
   return (
-    <div className="f-dm" style={{ background: 'white' }}>
+    <div className="min-h-screen" style={{background: C.ink, color: C.pearl}}>
       <Fonts />
-      <Header onNavigate={navigate} currentView={view} cartCount={cartCount} onCartOpen={() => setCartOpen(true)} searchQuery={searchQuery} />
-      <div className="fade" key={view + (selectedId || '')}>
-        {renderView()}
-      </div>
-      <Footer onNavigate={navigate} />
-      <CartDrawer
-        open={cartOpen}
-        onClose={() => setCartOpen(false)}
-        cart={cart}
-        onUpdateQty={updateQty}
-        onRemove={removeFromCart}
-        onWhatsApp={cartWhatsApp}
-      />
-      {cookies && <CookieBanner onClose={dismissCookies} />}
-      
-      {/* Floating WhatsApp button */}
-      <a
-        href="https://wa.me/573173641851?text=Hola%20Nova%20Import%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20perfumes"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="fixed bottom-24 right-6 z-30 bg-green-500 hover:bg-green-600 text-white w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:scale-110 transition-transform"
-        title="Chat por WhatsApp"
-      >
-        <MessageCircle size={26} strokeWidth={2} />
+      <PromoMarquee />
+      <Header onNav={nav} currentFilter={filter} currentView={view} cartCount={cart.length} onCartOpen={() => setCartOpen(true)} />
+
+      {view === 'home' && (
+        <>
+          <Hero onCta={(target) => nav('catalog', target)} />
+          <CollectionStrip products={PRODUCTS} onNav={(c) => nav('catalog', c)} />
+          <BestSellers products={PRODUCTS} onSelect={setSelected} />
+          <EditorialStory products={PRODUCTS} />
+          <FragranceFamilies products={PRODUCTS} />
+          <Testimonials />
+          <CtaBlock />
+        </>
+      )}
+
+      {view === 'catalog' && (
+        <CatalogView products={PRODUCTS} filter={filter} onSelect={setSelected} />
+      )}
+
+      {selected && <ProductDetail product={selected} onClose={() => setSelected(null)} onAddToCart={addToCart} />}
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onRemove={removeFromCart} onCheckout={checkoutWA} />
+
+      <Footer onNav={(c) => nav('catalog', c)} />
+
+      {/* Floating WhatsApp */}
+      <a href={buildWA()} target="_blank" rel="noopener noreferrer" className="fixed bottom-6 right-6 z-30 flex items-center justify-center w-14 h-14 rounded-full shadow-lg transition hover:scale-110" style={{background: '#25D366'}} title="Chatear por WhatsApp">
+        <MessageCircle size={24} color="white"/>
       </a>
-      
     </div>
   );
 }
