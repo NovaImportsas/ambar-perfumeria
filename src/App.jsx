@@ -3174,6 +3174,7 @@ function CatalogView({ products, filter, onSelect }) {
 function ProductDetail({ product, onClose, onAddToCart }) {
   const initialVariant = product.variants.find(v => v.size === '100ml' && v.tier === 'AA') || product.variants[0];
   const [variant, setVariant] = useState(initialVariant);
+  const [qty, setQty] = useState(1);
 
   useEffect(() => { document.body.style.overflow = 'hidden'; return () => { document.body.style.overflow = ''; }; }, []);
 
@@ -3226,8 +3227,17 @@ function ProductDetail({ product, onClose, onAddToCart }) {
               </div>
             </div>
 
+            <div className="mb-6">
+              <p className="f-mono text-xs mb-3" style={{color: C.gold}}>CANTIDAD</p>
+              <div className="flex items-center gap-3">
+                <button onClick={() => setQty(q => Math.max(1, q - 1))} className="w-12 h-12 border flex items-center justify-center transition hover:bg-amber-900/30 text-xl" style={{borderColor: C.gold + '50', color: C.pearl}}>−</button>
+                <span className="f-serif text-3xl w-16 text-center" style={{color: C.pearl}}>{qty}</span>
+                <button onClick={() => setQty(q => q + 1)} className="w-12 h-12 border flex items-center justify-center transition hover:bg-amber-900/30 text-xl" style={{borderColor: C.gold + '50', color: C.pearl}}>+</button>
+                <span className="f-mono ml-3" style={{color: C.ash}}>Total: <span style={{color: C.gold}}>{formatPrice(variant.price * qty)}</span></span>
+              </div>
+            </div>
             <div className="flex gap-3 mb-3">
-              <button onClick={() => onAddToCart(product, variant)} className="flex-1 py-4 f-mono transition hover:scale-[1.02]" style={{background: C.gold, color: C.brown}}>
+              <button onClick={() => onAddToCart(product, variant, qty)} className="flex-1 py-4 f-mono transition hover:scale-[1.02]" style={{background: C.gold, color: C.brown}}>
                 AGREGAR AL CARRITO
               </button>
               <a href={buildWA(product)} target="_blank" rel="noopener noreferrer" className="px-5 py-4 f-mono border flex items-center gap-2 transition hover:bg-amber-900/30" style={{borderColor: C.gold, color: C.gold}}>
@@ -3247,7 +3257,7 @@ function ProductDetail({ product, onClose, onAddToCart }) {
 // =========================================================================
 // CART DRAWER
 // =========================================================================
-function CartDrawer({ open, onClose, cart, onRemove, onCheckout }) {
+function CartDrawer({ open, onClose, cart, onRemove, onUpdateQty, onCheckout }) {
   if (!open) return null;
   const total = cart.reduce((sum, item) => sum + item.variant.price * item.qty, 0);
   return (
@@ -3274,7 +3284,12 @@ function CartDrawer({ open, onClose, cart, onRemove, onCheckout }) {
                     <p className="f-mono text-[10px]" style={{color: C.goldLight}}>{item.product.brand || item.product.inspiredBy}</p>
                     <p className="f-serif text-lg leading-tight" style={{color: C.pearl}}>{item.product.name}</p>
                     <p className="text-xs my-1" style={{color: C.ash}}>{item.variant.size} · {item.variant.tier}</p>
-                    <p className="f-sans font-medium" style={{color: C.gold}}>{formatPrice(item.variant.price * item.qty)}</p>
+                    <p className="f-sans font-medium mb-2" style={{color: C.gold}}>{formatPrice(item.variant.price * item.qty)}</p>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => onUpdateQty(i, -1)} className="w-7 h-7 border text-sm flex items-center justify-center transition hover:bg-amber-900/30" style={{borderColor: C.gold + '50', color: C.pearl}}>−</button>
+                      <span className="f-sans font-medium w-6 text-center" style={{color: C.pearl}}>{item.qty}</span>
+                      <button onClick={() => onUpdateQty(i, 1)} className="w-7 h-7 border text-sm flex items-center justify-center transition hover:bg-amber-900/30" style={{borderColor: C.gold + '50', color: C.pearl}}>+</button>
+                    </div>
                   </div>
                   <button onClick={() => onRemove(i)} className="self-start" style={{color: C.ash}}>
                     <X size={18}/>
@@ -3377,13 +3392,23 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const addToCart = (product, variant) => {
-    setCart(c => [...c, { product, variant, qty: 1 }]);
+  const addToCart = (product, variant, qty = 1) => {
+    setCart(c => {
+      const existingIndex = c.findIndex(i => i.product.id === product.id && i.variant.size === variant.size && i.variant.tier === variant.tier);
+      if (existingIndex >= 0) {
+        return c.map((item, i) => i === existingIndex ? { ...item, qty: item.qty + qty } : item);
+      }
+      return [...c, { product, variant, qty }];
+    });
     setCartOpen(true);
     setSelected(null);
   };
 
   const removeFromCart = (i) => setCart(c => c.filter((_, j) => j !== i));
+
+  const updateQty = (i, delta) => {
+    setCart(c => c.map((item, idx) => idx === i ? { ...item, qty: Math.max(1, item.qty + delta) } : item));
+  };
 
   const checkoutWA = () => {
     const lines = cart.map(i => `• ${i.product.name} (${i.variant.size} ${i.variant.tier}) — ${formatPrice(i.variant.price * i.qty)}`).join('\n');
@@ -3415,7 +3440,7 @@ export default function App() {
       )}
 
       {selected && <ProductDetail product={selected} onClose={() => setSelected(null)} onAddToCart={addToCart} />}
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onRemove={removeFromCart} onCheckout={checkoutWA} />
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} cart={cart} onRemove={removeFromCart} onUpdateQty={updateQty} onCheckout={checkoutWA} />
 
       <Footer onNav={(c) => nav('catalog', c)} />
 
